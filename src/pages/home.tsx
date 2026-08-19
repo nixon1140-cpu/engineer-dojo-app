@@ -1,0 +1,145 @@
+import type { FC } from 'hono/jsx'
+import { tracks, scenarios, totalLessonCount } from '../data'
+
+const categoryLabel = {
+  tech: { label: '技術トラック', icon: 'fa-code', desc: 'フロント・バック・インフラ・DB設計' },
+  business: { label: 'ビジネストラック', icon: 'fa-briefcase', desc: 'マーケ・経営・営業の視点' },
+  ai: { label: 'AI時代トラック', icon: 'fa-robot', desc: 'コード検証・言語化・設計判断' },
+} as const
+
+export const HomePage: FC = () => {
+  const lessonTotal = totalLessonCount()
+  const quizTotal = tracks.reduce(
+    (sum, t) =>
+      sum +
+      t.chapters.reduce(
+        (s, ch) => s + ch.lessons.filter((l) => l.quiz || l.codeExercise).length,
+        0
+      ),
+    0
+  )
+
+  return (
+    <div>
+      {/* ヒーロー */}
+      <section id="hero-section" class="bg-gradient-to-b from-dojo-800 to-dojo-950 border-b border-dojo-700">
+        <div class="max-w-6xl mx-auto px-4 py-20 text-center">
+          <p class="text-amber-400 font-bold mb-4 tracking-widest text-sm">
+            <i class="fa-solid fa-torii-gate mr-2"></i>
+            AI時代のエンジニア育成プラットフォーム
+          </p>
+          <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight">
+            AIが書く時代、
+            <br class="md:hidden" />
+            人間は<span class="text-amber-400">「判断」</span>で価値を出す。
+          </h1>
+          <p class="text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            コードを書く速さではAIに敵わない。だからこそ「何を作るかの言語化」「設計の妥当性判断」
+            「AIが書いたコードの検証」「本番を安全に変える技術」を、一人称で体験しながら学ぶ。
+          </p>
+          <div class="flex flex-wrap justify-center gap-4">
+            <a
+              href="/tracks"
+              class="bg-amber-400 text-dojo-950 font-bold px-8 py-3 rounded-lg hover:bg-amber-300 transition"
+            >
+              <i class="fa-solid fa-book-open mr-2"></i>カリキュラムを始める
+            </a>
+            <a
+              href="/scenarios"
+              class="border border-dojo-700 px-8 py-3 rounded-lg hover:border-amber-400 hover:text-amber-400 transition"
+            >
+              <i class="fa-solid fa-user-ninja mr-2"></i>実践シナリオに挑む
+            </a>
+          </div>
+          <div class="flex justify-center gap-8 mt-12 text-sm text-gray-400">
+            <span><strong class="text-2xl text-white block">{tracks.length}</strong>トラック</span>
+            <span><strong class="text-2xl text-white block">{lessonTotal}</strong>レッスン</span>
+            <span><strong class="text-2xl text-white block">{quizTotal}</strong>演習問題</span>
+            <span><strong class="text-2xl text-white block">{scenarios.length}</strong>実践シナリオ</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 学習の3本柱 */}
+      <section id="pillars-section" class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="text-2xl font-bold mb-2 text-center">学習の3本柱</h2>
+        <p class="text-gray-400 text-center mb-10">技術だけでは一人前になれない。ビジネスだけでも届かない。</p>
+        <div class="grid md:grid-cols-3 gap-6">
+          {(['tech', 'business', 'ai'] as const).map((cat) => (
+            <div class="bg-dojo-800 border border-dojo-700 rounded-xl p-6">
+              <div class="text-amber-400 text-3xl mb-4">
+                <i class={`fa-solid ${categoryLabel[cat].icon}`}></i>
+              </div>
+              <h3 class="font-bold text-lg mb-2">{categoryLabel[cat].label}</h3>
+              <p class="text-gray-400 text-sm mb-4">{categoryLabel[cat].desc}</p>
+              <ul class="space-y-2 text-sm">
+                {tracks
+                  .filter((t) => t.category === cat)
+                  .map((t) => (
+                    <li>
+                      <a href={`/tracks/${t.id}`} class="text-gray-300 hover:text-amber-400 transition">
+                        <i class={`fa-solid ${t.icon} mr-2 text-gray-500`}></i>
+                        {t.title}
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 実践シナリオ紹介 */}
+      <section id="scenarios-section" class="bg-dojo-900 border-y border-dojo-700">
+        <div class="max-w-6xl mx-auto px-4 py-16">
+          <h2 class="text-2xl font-bold mb-2 text-center">
+            <i class="fa-solid fa-user-ninja text-amber-400 mr-2"></i>実践シナリオ（ロールプレイ）
+          </h2>
+          <p class="text-gray-400 text-center mb-10">
+            「教室では学べない」現場の判断を、一人称のストーリーで体験する。
+          </p>
+          <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {scenarios.map((s) => (
+              <a
+                href={`/scenarios/${s.id}`}
+                class="bg-dojo-800 border border-dojo-700 rounded-xl p-5 hover:border-amber-400/60 transition group"
+              >
+                <div class="text-xs text-amber-400 mb-2">
+                  {'★'.repeat(s.difficulty)}{'☆'.repeat(3 - s.difficulty)}
+                  <span class="text-gray-500 ml-2">{s.minutes}分</span>
+                </div>
+                <h3 class="font-bold mb-2 group-hover:text-amber-400 transition">{s.title}</h3>
+                <p class="text-xs text-gray-400">{s.skill}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* こんな人に */}
+      <section id="audience-section" class="max-w-6xl mx-auto px-4 py-16">
+        <div class="bg-dojo-800 border border-dojo-700 rounded-2xl p-8 md:p-12">
+          <h2 class="text-2xl font-bold mb-6">こんな人のための道場</h2>
+          <div class="grid md:grid-cols-2 gap-6 text-sm leading-relaxed">
+            <div class="flex gap-3">
+              <i class="fa-solid fa-check text-amber-400 mt-1"></i>
+              <p>AIにコードは書かせられるが、<strong>それが正しいか判断できない</strong>未経験・ジュニアエンジニア</p>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-check text-amber-400 mt-1"></i>
+              <p>技術だけでなく、<strong>マーケ・経営・営業の視点</strong>で仕事の意味を理解したい人</p>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-check text-amber-400 mt-1"></i>
+              <p>コードレビューや本番運用など、<strong>現場でしか学べない経験</strong>を入社前に疑似体験したい人</p>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-check text-amber-400 mt-1"></i>
+              <p>「要件の言語化」「設計の妥当性判断」など、<strong>AIに代替されにくいスキル</strong>を磨きたい人</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
