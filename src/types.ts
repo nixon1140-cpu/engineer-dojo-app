@@ -19,6 +19,23 @@ export type CodeExercise = {
   options: QuizOption[]
 }
 
+// コーディング演習: 実際にコードを「書く」演習（ブラウザ内でテスト実行）
+export type CodingTest = {
+  description: string // テストの説明
+  script: string // 実行するJS式（fn が実装した関数として使える）。評価結果がexpectedと一致すれば合格
+  expected: string // 期待する評価結果のJSON文字列
+}
+
+export type CodingChallenge = {
+  prompt: string // 状況・要件の説明
+  functionName: string // 実装する関数名
+  signature: string // 関数シグネチャ（例: 'function attachAuthors(posts, users)'）
+  starterCode: string // 初期コード（骨組み）
+  tests: CodingTest[]
+  hints: string[]
+  solution: string // 模範解答
+}
+
 export type Lesson = {
   id: string
   title: string
@@ -28,6 +45,7 @@ export type Lesson = {
   points: string[] // 重要ポイントのまとめ
   quiz?: Quiz
   codeExercise?: CodeExercise
+  codingChallenge?: CodingChallenge
 }
 
 export type Chapter = {

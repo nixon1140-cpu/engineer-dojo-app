@@ -149,6 +149,92 @@ export const techTracks: Track[] = [
               '送信中はdisabledで二重送信防止',
               '異常系のチェックリストを持つ',
             ],
+            codingChallenge: {
+              prompt:
+                '学んだ知識を使って、実際にバリデーション関数を書いてみましょう。要件: ①nameは必須・50文字以内 ②emailは必須・「@」を含むこと ③passwordは必須・8文字以上・英字と数字を両方含むこと。戻り値は { valid: boolean, errors: オブジェクト } で、エラーメッセージはフィールド名をキーにして格納します（例: errors.name = \'名前は必須です\'）。',
+              functionName: 'validateSignup',
+              signature: 'function validateSignup(values)  // values = { name, email, password }',
+              starterCode: `function validateSignup(values) {
+  const errors = {}
+
+  // ここにバリデーションを実装
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors: errors,
+  }
+}`,
+              tests: [
+                {
+                  description: '正常な入力は valid: true を返す',
+                  script: "fn({name:'田中太郎',email:'tanaka@example.com',password:'abcd1234'}).valid",
+                  expected: 'true',
+                },
+                {
+                  description: '正常な入力は errors が空オブジェクト',
+                  script: "Object.keys(fn({name:'田中太郎',email:'tanaka@example.com',password:'abcd1234'}).errors).length",
+                  expected: '0',
+                },
+                {
+                  description: '名前が空なら valid: false',
+                  script: "fn({name:'',email:'t@example.com',password:'abcd1234'}).valid",
+                  expected: 'false',
+                },
+                {
+                  description: '名前が空なら errors.name にメッセージが入る',
+                  script: "typeof fn({name:'',email:'t@example.com',password:'abcd1234'}).errors.name === 'string'",
+                  expected: 'true',
+                },
+                {
+                  description: '「@」のないメールアドレスは errors.email が入る',
+                  script: "'email' in fn({name:'田中',email:'invalid-email',password:'abcd1234'}).errors",
+                  expected: 'true',
+                },
+                {
+                  description: '7文字のパスワードはエラー（8文字以上が必要）',
+                  script: "'password' in fn({name:'田中',email:'t@example.com',password:'abc1234'}).errors",
+                  expected: 'true',
+                },
+                {
+                  description: '数字のみ8文字のパスワードもエラー（英字が必要）',
+                  script: "'password' in fn({name:'田中',email:'t@example.com',password:'12345678'}).errors",
+                  expected: 'true',
+                },
+              ],
+              hints: [
+                '空チェックは if (!values.name) のように書ける。空文字列は falsy であることを利用する',
+                '英字を含むかの判定: /[a-zA-Z]/.test(values.password)、数字は /[0-9]/',
+                'エラーメッセージは日本語で具体的に。「何が」「どう」ダメかを書くのがこのレッスンの肝',
+              ],
+              solution: `function validateSignup(values) {
+  const errors = {}
+
+  if (!values.name) {
+    errors.name = '名前は必須です'
+  } else if (values.name.length > 50) {
+    errors.name = '名前は50文字以内で入力してください'
+  }
+
+  if (!values.email) {
+    errors.email = 'メールアドレスは必須です'
+  } else if (!values.email.includes('@')) {
+    errors.email = 'メールアドレスの形式が正しくありません'
+  }
+
+  if (!values.password) {
+    errors.password = 'パスワードは必須です'
+  } else if (values.password.length < 8) {
+    errors.password = 'パスワードは8文字以上で設定してください'
+  } else if (!/[a-zA-Z]/.test(values.password) || !/[0-9]/.test(values.password)) {
+    errors.password = 'パスワードは英字と数字を両方含めてください'
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors: errors,
+  }
+}`,
+            },
           },
         ],
       },
@@ -273,6 +359,60 @@ export const techTracks: Track[] = [
               'IDOR: URLのIDを変えるだけで他人のデータが見える事故',
               '認可は必ずサーバー側で検証する',
             ],
+            codingChallenge: {
+              prompt:
+                '認可チェック関数を実装してください。要件: ①管理者（role が \'admin\'）は全ての注文を閲覧できる ②一般ユーザーは自分の注文（order.userId と user.id が一致）のみ閲覧できる ③未ログイン（user が null）の場合は一切閲覧できない。戻り値は boolean（閲覧可: true / 不可: false）。',
+              functionName: 'canViewOrder',
+              signature: 'function canViewOrder(user, order)',
+              starterCode: `// user: { id: number, role: 'admin' | 'user' } または null
+// order: { userId: number, total: number }
+function canViewOrder(user, order) {
+  // ここに実装
+
+}`,
+              tests: [
+                {
+                  description: '管理者は他人の注文も閲覧できる',
+                  script: "fn({id:99,role:'admin'},{userId:1,total:500})",
+                  expected: 'true',
+                },
+                {
+                  description: '一般ユーザーは自分の注文を閲覧できる',
+                  script: "fn({id:1,role:'user'},{userId:1,total:500})",
+                  expected: 'true',
+                },
+                {
+                  description: '一般ユーザーは他人の注文を閲覧できない（IDOR防止）',
+                  script: "fn({id:1,role:'user'},{userId:2,total:500})",
+                  expected: 'false',
+                },
+                {
+                  description: '未ログイン（null）は自分の注文にも見えるIDでも閲覧不可',
+                  script: "fn(null,{userId:1,total:500})",
+                  expected: 'false',
+                },
+                {
+                  description: 'admin 以外の文字列（例: \'manager\'）は管理者扱いしない',
+                  script: "fn({id:1,role:'manager'},{userId:2,total:500})",
+                  expected: 'false',
+                },
+              ],
+              hints: [
+                '最初に user が null の場合を早期リターンで弾くと、以降の処理が安全になる',
+                '管理者チェックは所有者チェックより「先」に書く（順序が重要）',
+                '最後は return order.userId === user.id の1行で書ける',
+              ],
+              solution: `function canViewOrder(user, order) {
+  // 未ログインは一切不可
+  if (!user) return false
+
+  // 管理者は全件OK
+  if (user.role === 'admin') return true
+
+  // 一般ユーザーは自分の注文のみ
+  return order.userId === user.id
+}`,
+            },
             quiz: {
               question: '「マイページ画面では自分の注文へのリンクしか表示していない。API側の認可チェックは省略した」という設計の問題点は？',
               options: [
@@ -514,6 +654,60 @@ export const techTracks: Track[] = [
               'Eager Loading（一括取得）で解決',
               '開発時にクエリログを見る習慣',
             ],
+            codingChallenge: {
+              prompt:
+                'N+1を回避する結合処理を実装してください。posts 配列の各要素に、users 配列から対応する著者オブジェクトを author プロパティとして付けた「新しい配列」を返します。条件: ①ユーザー検索はO(1)にすること（Mapの使用推奨。find をループ内で使うとO(n×m)で本末転倒）②元の posts/users を変更しない ③対応するユーザーがいない場合は author を null にする。',
+              functionName: 'attachAuthors',
+              signature: 'function attachAuthors(posts, users)',
+              starterCode: `// posts: [{ id, user_id, title }, ...]
+// users: [{ id, name }, ...]
+function attachAuthors(posts, users) {
+  // ヒント: まず users から id => user の Map を作る
+
+}`,
+              tests: [
+                {
+                  description: '著者名が正しく結合される',
+                  script: "fn([{id:1,user_id:10,title:'Hello'}],[{id:10,name:'Taro'}])[0].author.name",
+                  expected: '"Taro"',
+                },
+                {
+                  description: '対応ユーザーがいない場合は author が null',
+                  script: "fn([{id:1,user_id:99,title:'X'}],[{id:10,name:'Taro'}])[0].author",
+                  expected: 'null',
+                },
+                {
+                  description: '件数が保持される',
+                  script: "fn([{id:1,user_id:10},{id:2,user_id:10}],[{id:10,name:'T'}]).length",
+                  expected: '2',
+                },
+                {
+                  description: '複数ユーザーも正しく結合される',
+                  script: "fn([{id:1,user_id:10},{id:2,user_id:11}],[{id:10,name:'A'},{id:11,name:'B'}])[1].author.name",
+                  expected: '"B"',
+                },
+                {
+                  description: '元の posts 配列を変更していない（副作用なし）',
+                  script: "(() => { const p=[{id:1,user_id:10}]; fn(p,[{id:10,name:'T'}]); return !('author' in p[0]) })()",
+                  expected: 'true',
+                },
+              ],
+              hints: [
+                'Map の作り方: new Map(users.map(u => [u.id, u]))',
+                'map.get(post.user_id) で O(1) の検索になる',
+                '返却は posts.map(post => ({ ...post, author: ... })) の形。見つからない時は ?? null',
+              ],
+              solution: `function attachAuthors(posts, users) {
+  // ID => ユーザーの Map を作り、検索をO(1)にする
+  const userMap = new Map(users.map(u => [u.id, u]))
+
+  // 元の配列は変更せず、新しいオブジェクトの配列を返す
+  return posts.map(post => ({
+    ...post,
+    author: userMap.get(post.user_id) ?? null,
+  }))
+}`,
+            },
             codeExercise: {
               prompt: 'チームメンバーが書いたコードです。「投稿一覧に著者名を表示する」機能です。',
               code: `// 投稿を全件取得

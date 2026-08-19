@@ -110,6 +110,77 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
           </section>
         )}
 
+        {lesson.codingChallenge && (
+          <section
+            class="coding-challenge bg-dojo-900 border border-amber-400/30 rounded-xl p-6 mb-8"
+            data-lesson-id={lesson.id}
+            data-function-name={lesson.codingChallenge.functionName}
+          >
+            <h2 class="font-bold mb-1">
+              <i class="fa-solid fa-keyboard text-amber-400 mr-2"></i>コーディング演習
+              <span class="ml-2 text-xs font-normal bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded">
+                実際に書く
+              </span>
+            </h2>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">{lesson.codingChallenge.prompt}</p>
+
+            <div class="bg-dojo-800 border border-dojo-700 rounded-lg px-4 py-2 mb-3 text-xs text-gray-400 font-mono">
+              {lesson.codingChallenge.signature}
+            </div>
+
+            <textarea
+              class="coding-editor w-full h-64 bg-dojo-950 border border-dojo-700 rounded-lg p-4 font-mono text-sm text-gray-100 leading-relaxed focus:border-amber-400/60 focus:outline-none resize-y"
+              spellcheck="false"
+            >{lesson.codingChallenge.starterCode}</textarea>
+
+            <div class="flex flex-wrap items-center gap-3 mt-3">
+              <button class="coding-run-btn bg-amber-400 text-dojo-950 font-bold px-5 py-2 rounded-lg hover:bg-amber-300 transition text-sm">
+                <i class="fa-solid fa-play mr-1"></i>テストを実行
+              </button>
+              <button class="coding-reset-btn text-sm text-gray-400 hover:text-amber-400 transition">
+                <i class="fa-solid fa-rotate-left mr-1"></i>初期コードに戻す
+              </button>
+              <button class="coding-hints-btn text-sm text-gray-400 hover:text-amber-400 transition">
+                <i class="fa-regular fa-lightbulb mr-1"></i>ヒント
+              </button>
+              <button class="coding-solution-btn text-sm text-gray-400 hover:text-amber-400 transition">
+                <i class="fa-regular fa-eye mr-1"></i>模範解答を見る
+              </button>
+            </div>
+
+            <div class="coding-hints hidden mt-4 bg-dojo-800 border border-dojo-700 rounded-lg p-4">
+              <p class="text-xs font-bold text-amber-400 mb-2">
+                <i class="fa-regular fa-lightbulb mr-1"></i>ヒント
+              </p>
+              <ul class="space-y-1 text-sm text-gray-300">
+                {lesson.codingChallenge.hints.map((h, i) => (
+                  <li class="flex gap-2">
+                    <span class="text-gray-500 shrink-0">{i + 1}.</span>
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div class="coding-solution hidden mt-4">
+              <p class="text-xs font-bold text-amber-400 mb-2">
+                <i class="fa-regular fa-eye mr-1"></i>模範解答（読んで理解したら、自力で書き直してみましょう）
+              </p>
+              <pre class="bg-dojo-950 border border-dojo-700 rounded-lg p-4 text-xs overflow-x-auto leading-relaxed"><code>{lesson.codingChallenge.solution}</code></pre>
+            </div>
+
+            <div class="coding-results hidden mt-4"></div>
+
+            <script
+              type="application/json"
+              class="coding-tests-data"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify(lesson.codingChallenge.tests).replace(/</g, '\\u003c'),
+              }}
+            />
+          </section>
+        )}
+
         <div class="flex items-center justify-between border-t border-dojo-700 pt-6">
           <button
             id="lesson-complete-btn"

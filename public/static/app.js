@@ -187,6 +187,130 @@
     }
   }
 
+  /* ========== コーディング演習（実際に書く→ブラウザ内でテスト実行） ========== */
+  document.querySelectorAll('.coding-challenge').forEach(function (block) {
+    const editor = block.querySelector('.coding-editor')
+    const runBtn = block.querySelector('.coding-run-btn')
+    const resetBtn = block.querySelector('.coding-reset-btn')
+    const hintsBtn = block.querySelector('.coding-hints-btn')
+    const solutionBtn = block.querySelector('.coding-solution-btn')
+    const hintsEl = block.querySelector('.coding-hints')
+    const solutionEl = block.querySelector('.coding-solution')
+    const resultsEl = block.querySelector('.coding-results')
+    const lessonId = block.dataset.lessonId
+    const functionName = block.dataset.functionName
+    const starterCode = editor.value
+    let tests = []
+    try {
+      tests = JSON.parse(block.querySelector('.coding-tests-data').textContent)
+    } catch (e) {
+      console.error('テストデータの読み込みに失敗', e)
+      return
+    }
+
+    // ヒント/解答のトグル
+    hintsBtn.addEventListener('click', function () {
+      hintsEl.classList.toggle('hidden')
+    })
+    solutionBtn.addEventListener('click', function () {
+      if (
+        solutionEl.classList.contains('hidden') &&
+        !confirm('模範解答を表示します。先に自力で挑戦しましたか？')
+      ) {
+        return
+      }
+      solutionEl.classList.toggle('hidden')
+    })
+    resetBtn.addEventListener('click', function () {
+      if (confirm('編集内容を破棄して初期コードに戻しますか？')) {
+        editor.value = starterCode
+        resultsEl.classList.add('hidden')
+      }
+    })
+
+    // Tabキーでインデント（スマホ/PC共通で編集体験を向上）
+    editor.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        const start = this.selectionStart
+        const end = this.selectionEnd
+        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end)
+        this.selectionStart = this.selectionEnd = start + 2
+      }
+    })
+
+    runBtn.addEventListener('click', function () {
+      const code = editor.value
+      resultsEl.classList.remove('hidden')
+
+      // 1. ユーザーコードを評価して関数を取得（fn として束縛）
+      let fn
+      try {
+        fn = new Function(code + '\nreturn ' + functionName + ';')()
+      } catch (e) {
+        resultsEl.innerHTML =
+          '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
+          '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-bug mr-1"></i>構文エラー</p>' +
+          '<p class="text-gray-300 font-mono text-xs">' + escapeHtml(String(e.message)) + '</p>' +
+          '<p class="text-gray-500 text-xs mt-2">コードの文法を確認してください（括弧の閉じ忘れ等）。</p></div>'
+        return
+      }
+      if (typeof fn !== 'function') {
+        resultsEl.innerHTML =
+          '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm text-gray-300">' +
+          '関数 <code class="text-amber-300">' + escapeHtml(functionName) + '</code> が定義されていません。関数名を変更しないでください。</div>'
+        return
+      }
+
+      // 2. 各テストを実行（test.script 内で fn が使える）
+      let passed = 0
+      let rows = ''
+      tests.forEach(function (t, i) {
+        let actual, ok, error = null
+        try {
+          actual = new Function('fn', 'return (' + t.script + ');')(fn)
+          ok = JSON.stringify(actual) === t.expected
+        } catch (e) {
+          ok = false
+          error = e.message
+        }
+        if (ok) passed++
+        rows +=
+          '<li class="flex gap-2 text-sm ' + (ok ? 'text-gray-300' : 'text-red-300') + '">' +
+          '<i class="fa-solid ' + (ok ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400') + ' mt-1 shrink-0"></i>' +
+          '<span>テスト' + (i + 1) + ': ' + escapeHtml(t.description) +
+          (ok ? '' : '<br><span class="text-xs text-gray-500 font-mono">' +
+            (error ? '実行エラー: ' + escapeHtml(error) : '期待値: ' + escapeHtml(t.expected) + ' / 実際: ' + escapeHtml(JSON.stringify(actual))) +
+            '</span>') +
+          '</span></li>'
+      })
+
+      const allPassed = passed === tests.length
+      resultsEl.innerHTML =
+        '<div class="p-4 rounded-lg border text-sm ' +
+        (allPassed
+          ? 'bg-emerald-400/10 border-emerald-400/40'
+          : 'bg-dojo-800 border-dojo-700') +
+        '">' +
+        '<p class="font-bold mb-2 ' + (allPassed ? 'text-emerald-400' : 'text-amber-400') + '">' +
+        (allPassed
+          ? '<i class="fa-solid fa-trophy mr-1"></i>全テスト合格！ ' + passed + '/' + tests.length
+          : '<i class="fa-solid fa-flask mr-1"></i>' + passed + ' / ' + tests.length + ' 件合格') +
+        '</p>' +
+        '<ul class="space-y-1.5">' + rows + '</ul>' +
+        (allPassed
+          ? '<p class="text-xs text-gray-400 mt-3">合格です。次は「模範解答」と見比べて、書き方の違いを確認しましょう。</p>'
+          : '<p class="text-xs text-gray-400 mt-3">失敗したテストの期待値と実際の値を比較して、修正してみましょう。ヒントも活用できます。</p>') +
+        '</div>'
+
+      // 全合格は進捗に記録（quiz枠を流用）
+      if (allPassed && lessonId && window.Dojo) {
+        window.Dojo.recordQuiz(lessonId + '-coding', true)
+      }
+      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+  })
+
   /* ========== シナリオエンジン ========== */
   const scenarioRoot = document.getElementById('scenario-root')
   if (scenarioRoot) {
