@@ -8,6 +8,7 @@ export type QuizOption = {
 
 export type Quiz = {
   question: string
+  hint?: string // 回答前に参照できるヒント
   options: QuizOption[]
 }
 
@@ -16,6 +17,7 @@ export type CodeExercise = {
   prompt: string // 状況説明
   code: string // 読む対象のコード
   question: string
+  hint?: string // 回答前に参照できるヒント
   options: QuizOption[]
 }
 
@@ -36,6 +38,15 @@ export type CodingChallenge = {
   solution: string // 模範解答
 }
 
+// SQL演習: ブラウザ内SQLite（sql.js）で実際にクエリを書いて実行する演習
+export type SqlChallenge = {
+  prompt: string // 状況・要件の説明
+  schemaSql: string // テーブル定義（表示にも使用）
+  seedSql: string // 投入データ
+  solutionSql: string // 模範解答クエリ（採点はこの結果との一致で判定）
+  hints: string[]
+}
+
 export type Lesson = {
   id: string
   title: string
@@ -46,6 +57,7 @@ export type Lesson = {
   quiz?: Quiz
   codeExercise?: CodeExercise
   codingChallenge?: CodingChallenge
+  sqlChallenge?: SqlChallenge
 }
 
 export type Chapter = {

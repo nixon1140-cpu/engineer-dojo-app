@@ -42,12 +42,43 @@ export const businessTracks: Track[] = [
             ],
             quiz: {
               question: '「新規登録フォームのCV率が低い」という課題。エンジニアとして最初に取るべき行動は？',
+              hint: '原因が分からない状態で改修すると、何が効いたか検証できません。「推測するな、計測せよ」の原則を思い出してください。',
               options: [
                 { text: 'フォームを全面リニューアルする', correct: false, why: '原因を特定せずに全面改修すると、何が効いたか検証できません。' },
                 { text: 'どの入力項目で離脱が多いか計測データを確認する', correct: true, why: '正解！「推測するな、計測せよ」。項目別の離脱率が分かれば、最小の変更で最大の改善を狙えます。計測がなければ、まず計測を入れることが第一のタスクです。' },
                 { text: '登録ボタンを大きく目立たせる', correct: false, why: 'よくある施策ですが、離脱原因が「項目が多い」なら効果は限定的です。まず原因の特定を。' },
                 { text: 'マーケチームに任せる', correct: false, why: 'フォームの実装・計測はエンジニアの領域です。職種の壁を作らず、数字を共通言語に協働しましょう。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'ファネル分析の計算を実装しましょう。ステップ名と人数の配列を受け取り、直前ステップからの「通過率(%)」を計算した配列を返す関数を書いてください。例: [{name:\'訪問\',count:1000},{name:\'登録\',count:100}] → 訪問は100%、登録は10%。小数第1位に丸めてください。',
+              functionName: 'calcConversion',
+              signature: 'function calcConversion(steps)',
+              starterCode: `function calcConversion(steps) {
+  // 1. 各ステップについて、直前のステップの人数で割って ×100
+  // 2. 最初のステップは 100 とする
+  // 3. Math.round(rate * 10) / 10 で小数第1位に丸める
+
+}`,
+              tests: [
+                { description: '先頭は100%', script: "fn([{name:'訪問',count:1000},{name:'登録',count:100}])[0].rate", expected: '100' },
+                { description: '2番目は 100/1000 = 10%', script: "fn([{name:'訪問',count:1000},{name:'登録',count:100}])[1].rate", expected: '10' },
+                { description: '3段階の計算: 50→25 は 50%', script: "fn([{name:'a',count:50},{name:'b',count:25}])[1].rate", expected: '50' },
+                { description: '小数の丸め: 1/3 = 33.3%', script: "fn([{name:'a',count:3},{name:'b',count:1}])[1].rate", expected: '33.3' },
+              ],
+              hints: [
+                'steps.map((s, i) => ...) でインデックスが使えます',
+                'i === 0 なら rate は 100、それ以外は (s.count / steps[i-1].count) * 100',
+                'Math.round(rate * 10) / 10 で小数第1位に丸められます',
+              ],
+              solution: `function calcConversion(steps) {
+  return steps.map((s, i) => {
+    if (i === 0) return { name: s.name, rate: 100 }
+    const rate = (s.count / steps[i - 1].count) * 100
+    return { name: s.name, rate: Math.round(rate * 10) / 10 }
+  })
+}`,
             },
           },
           {
@@ -67,6 +98,35 @@ export const businessTracks: Track[] = [
               'SPAではルーティング連動のpage_view送信が必要',
               '計測は機能実装とセットで考える',
             ],
+            codingChallenge: {
+              prompt:
+                '計測イベントを組み立てる関数を書いてください。引数は (eventName, userId, props) で、戻り値は { event, userId, timestamp, ...props } の形式のオブジェクトです。timestamp は Date.now() の値を入れてください。例: buildEvent(\'signup_click\', 42, { page: \'/top\' }) → { event: \'signup_click\', userId: 42, timestamp: 数値, page: \'/top\' }',
+              functionName: 'buildEvent',
+              signature: 'function buildEvent(eventName, userId, props)',
+              starterCode: `function buildEvent(eventName, userId, props) {
+  // スプレッド構文 ...props でプロパティを展開できます
+
+}`,
+              tests: [
+                { description: 'event 名が入る', script: "fn('signup_click',42,{}).event", expected: '"signup_click"' },
+                { description: 'userId が入る', script: "fn('signup_click',42,{}).userId", expected: '42' },
+                { description: 'props の中身が展開される', script: "fn('pv',1,{page:'/top'}).page", expected: '"/top"' },
+                { description: 'timestamp が数値で入る', script: "typeof fn('pv',1,{}).timestamp === 'number'", expected: 'true' },
+              ],
+              hints: [
+                'return { event: eventName, userId: userId, ... } の形',
+                '...props でオブジェクトの中身を展開してマージできます',
+                'timestamp: Date.now() で現在時刻（ミリ秒）が取れます',
+              ],
+              solution: `function buildEvent(eventName, userId, props) {
+  return {
+    event: eventName,
+    userId: userId,
+    timestamp: Date.now(),
+    ...props,
+  }
+}`,
+            },
           },
         ],
       },
@@ -113,12 +173,36 @@ export const businessTracks: Track[] = [
             ],
             quiz: {
               question: 'レガシーコードの改修を経営層に提案する際、最も説得力がある表現は？',
+              hint: '経営層が判断に必要とするのは「現状の損失」「投資額」「回収の見通し」の3点です。どの選択肢がこの3点を含んでいますか。',
               options: [
                 { text: 'コードが汚くて保守性が低いので直したい', correct: false, why: 'エンジニアの価値観の言葉であり、経営層には「なぜ今投資すべきか」が伝わりません。' },
                 { text: 'この領域は新機能開発のたびに改修コストが3倍かかっており、年間約○○万円の損失です。3ヶ月の投資で開発速度が元に戻ります', correct: true, why: '正解！現状コストの定量化、投資額、リターン（回収期間）の3点が揃っており、経営判断ができる提案です。' },
                 { text: '最新フレームワークに移行したい', correct: false, why: '「新しい技術を使いたい」はエンジニアの動機であり、経営上の理由にはなりません。' },
                 { text: '障害が起きたら大変なので', correct: false, why: 'リスクの指摘としては有効ですが、確率と影響額の見積もりがないと「杞憂」と受け取られます。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '技術的負債の「金利」を可視化しましょう。月あたりの余計なコスト（万円）と月数を受け取り、累積コストを返す関数を書いてください。例: debtInterest(10, 12) → 120（月10万円×12ヶ月 = 120万円）。この数字が「返済しないとどれだけ損するか」の説得材料になります。',
+              functionName: 'debtInterest',
+              signature: 'function debtInterest(monthlyCost, months)',
+              starterCode: `function debtInterest(monthlyCost, months) {
+  // 単純な掛け算で表現できます
+
+}`,
+              tests: [
+                { description: '月10万×12ヶ月 = 120', script: 'fn(10, 12)', expected: '120' },
+                { description: '月5万×6ヶ月 = 30', script: 'fn(5, 6)', expected: '30' },
+                { description: '0ヶ月なら 0', script: 'fn(10, 0)', expected: '0' },
+              ],
+              hints: [
+                'return monthlyCost * months で完成です',
+                'コメントに // 累積コスト（万円） と単位を書くと丁寧です',
+              ],
+              solution: `function debtInterest(monthlyCost, months) {
+  // 累積コスト（万円）= 月あたりの余計なコスト × 経過月数
+  return monthlyCost * months
+}`,
             },
           },
           {
@@ -138,6 +222,28 @@ export const businessTracks: Track[] = [
               'コストは開発費ではなくTCO（総保有コスト）で見る',
               'SaaS利用時は交換可能性を設計に残す',
             ],
+            codingChallenge: {
+              prompt:
+                'Build vs Buy を数値で判断する練習です。機能のオブジェクトを受け取り、それが \'build\'（自作）か \'buy\'（購入）かを判定する関数を書いてください。ルール: isCore（競争優位に関わる）が true なら \'build\'、false なら \'buy\' を返します。',
+              functionName: 'buildOrBuy',
+              signature: 'function buildOrBuy(feature)  // feature = { name, isCore }',
+              starterCode: `function buildOrBuy(feature) {
+  // feature.isCore が true なら 'build'、false なら 'buy'
+
+}`,
+              tests: [
+                { description: 'コア機能（商品検索）は build', script: "fn({name:'商品検索',isCore:true})", expected: '"build"' },
+                { description: '非コア機能（メール送信）は buy', script: "fn({name:'メール送信',isCore:false})", expected: '"buy"' },
+                { description: '非コア機能（決済）は buy', script: "fn({name:'決済',isCore:false})", expected: '"buy"' },
+              ],
+              hints: [
+                '三項演算子: return feature.isCore ? \'build\' : \'buy\'',
+                'if 文で書いてもOKです',
+              ],
+              solution: `function buildOrBuy(feature) {
+  return feature.isCore ? 'build' : 'buy'
+}`,
+            },
           },
         ],
       },
@@ -184,12 +290,35 @@ export const businessTracks: Track[] = [
             ],
             quiz: {
               question: '営業から「顧客がCSVエクスポート機能を急いで欲しいと言っています」と依頼。最初に取るべき行動は？',
+              hint: '「CSVエクスポート」は課題ではなく「解決策の形」で語られています。その先にある本当の目的（監査提出？ 分析？）を確認する質問は何でしょう。',
               options: [
                 { text: 'すぐにCSVエクスポート機能の見積もりを出す', correct: false, why: '要件の背景を知らないまま見積もると、的外れな機能を作るリスクがあります。' },
                 { text: '「何に使うのか」を営業（または顧客）に確認する', correct: true, why: '正解！用途が「監査提出用」ならPDF固定形式が良いかもしれず、「分析用」ならAPI連携が本質解決かもしれません。背景確認は数分で済み、手戻りを防ぎます。' },
                 { text: '技術的に難しいと断る', correct: false, why: '「できません」の一点張りはエンジニアの価値を下げます。' },
                 { text: '類似機能の有無だけ確認して開発を始める', correct: false, why: '技術的な確認の前に、ビジネス要件の確認が先です。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '要件を構造化する練習です。「要望（解決策の形）」を受け取り、深掘りの質問文を返す関数を書いてください。戻り値は \'「[要望]」の背景にある目的を教えてください。何に使いますか？\' の形式の文字列です（[要望] の部分に引数を埋め込む）。',
+              functionName: 'drillDownQuestion',
+              signature: 'function drillDownQuestion(request)',
+              starterCode: `function drillDownQuestion(request) {
+  // 文字列の中に request を埋め込んで返す
+  // テンプレートリテラル（バッククォート + \${変数}）を使うと便利
+
+}`,
+              tests: [
+                { description: 'CSVエクスポート → 深掘り質問文', script: "fn('CSVエクスポート')", expected: '"「CSVエクスポート」の背景にある目的を教えてください。何に使いますか？"' },
+                { description: 'ボタン追加 → 深掘り質問文', script: "fn('ボタン追加')", expected: '"「ボタン追加」の背景にある目的を教えてください。何に使いますか？"' },
+              ],
+              hints: [
+                "return '「' + request + '」の背景にある目的を教えてください。何に使いますか？'",
+                'テンプレートリテラルなら: return `「${request}」の背景にある目的を教えてください。何に使いますか？`',
+              ],
+              solution: `function drillDownQuestion(request) {
+  return \`「\${request}」の背景にある目的を教えてください。何に使いますか？\`
+}`,
             },
           },
           {
@@ -209,6 +338,31 @@ export const businessTracks: Track[] = [
               '不確実性は幅（楽観/普通/悲観）で伝える',
               '遅延の予兆は即共有。情報は早いほど価値がある',
             ],
+            codingChallenge: {
+              prompt:
+                '見積もりの「幅」を計算する関数を書いてください。楽観値・悲観値・信頼度(0-1)を受け取り、期待値を返します。計算式: 期待値 = 楽観値 × 信頼度 + 悲観値 × (1 - 信頼度)。例: estimateRange(3, 10, 0.7) → 3×0.7 + 10×0.3 = 5.1。小数第1位に丸めてください。',
+              functionName: 'estimateRange',
+              signature: 'function estimateRange(optimistic, pessimistic, confidence)',
+              starterCode: `function estimateRange(optimistic, pessimistic, confidence) {
+  // 加重平均: 楽観値 × 信頼度 + 悲観値 × (1 - 信頼度)
+  // Math.round(値 * 10) / 10 で小数第1位に丸める
+
+}`,
+              tests: [
+                { description: '3, 10, 0.7 → 5.1', script: 'fn(3, 10, 0.7)', expected: '5.1' },
+                { description: '信頼度1.0なら楽観値', script: 'fn(3, 10, 1)', expected: '3' },
+                { description: '信頼度0なら悲観値', script: 'fn(3, 10, 0)', expected: '10' },
+                { description: '2, 8, 0.5 → 5', script: 'fn(2, 8, 0.5)', expected: '5' },
+              ],
+              hints: [
+                'const expected = optimistic * confidence + pessimistic * (1 - confidence)',
+                '丸めは return Math.round(expected * 10) / 10',
+              ],
+              solution: `function estimateRange(optimistic, pessimistic, confidence) {
+  const expected = optimistic * confidence + pessimistic * (1 - confidence)
+  return Math.round(expected * 10) / 10
+}`,
+            },
           },
         ],
       },

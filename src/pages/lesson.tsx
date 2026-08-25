@@ -70,6 +70,14 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
             </h2>
             <p class="text-sm text-gray-400 mb-4">選ぶと即座に解説が表示されます。</p>
             <p class="font-medium mb-4">{lesson.quiz.question}</p>
+            {lesson.quiz.hint && (
+              <details class="quiz-hint mb-4 rounded-lg border border-sky-400/30 bg-sky-400/5">
+                <summary class="cursor-pointer px-4 py-2 text-sm text-sky-300 hover:text-sky-200 select-none">
+                  <i class="fa-regular fa-lightbulb mr-1"></i>ヒントを見る
+                </summary>
+                <p class="px-4 pb-3 text-sm text-gray-300 leading-relaxed">{lesson.quiz.hint}</p>
+              </details>
+            )}
             <div class="space-y-2">
               {lesson.quiz.options.map((opt, i) => (
                 <button
@@ -94,6 +102,14 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
             <p class="text-sm text-gray-400 mb-4">{lesson.codeExercise.prompt}</p>
             <pre class="bg-dojo-950 border border-dojo-700 rounded-lg p-4 text-xs overflow-x-auto mb-4 leading-relaxed"><code>{lesson.codeExercise.code}</code></pre>
             <p class="font-medium mb-4">{lesson.codeExercise.question}</p>
+            {lesson.codeExercise.hint && (
+              <details class="quiz-hint mb-4 rounded-lg border border-sky-400/30 bg-sky-400/5">
+                <summary class="cursor-pointer px-4 py-2 text-sm text-sky-300 hover:text-sky-200 select-none">
+                  <i class="fa-regular fa-lightbulb mr-1"></i>ヒントを見る
+                </summary>
+                <p class="px-4 pb-3 text-sm text-gray-300 leading-relaxed">{lesson.codeExercise.hint}</p>
+              </details>
+            )}
             <div class="space-y-2">
               {lesson.codeExercise.options.map((opt, i) => (
                 <button
@@ -176,6 +192,84 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
               class="coding-tests-data"
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify(lesson.codingChallenge.tests).replace(/</g, '\\u003c'),
+              }}
+            />
+          </section>
+        )}
+
+        {lesson.sqlChallenge && (
+          <section
+            class="sql-challenge bg-dojo-900 border border-emerald-400/30 rounded-xl p-6 mb-8"
+            data-lesson-id={lesson.id}
+          >
+            <h2 class="font-bold mb-1">
+              <i class="fa-solid fa-database text-emerald-400 mr-2"></i>SQL演習
+              <span class="ml-2 text-xs font-normal bg-emerald-400/20 text-emerald-300 px-2 py-0.5 rounded">
+                ブラウザ内SQLite
+              </span>
+            </h2>
+            <p class="text-sm text-gray-400 mb-4 leading-relaxed">{lesson.sqlChallenge.prompt}</p>
+
+            <details class="mb-4 rounded-lg border border-dojo-700 bg-dojo-800">
+              <summary class="cursor-pointer px-4 py-2 text-sm text-gray-300 hover:text-emerald-300 select-none">
+                <i class="fa-solid fa-table mr-1"></i>テーブル定義と初期データを見る
+              </summary>
+              <div class="px-4 pb-4 space-y-3">
+                <pre class="bg-dojo-950 border border-dojo-700 rounded-lg p-3 text-xs overflow-x-auto leading-relaxed"><code>{lesson.sqlChallenge.schemaSql}</code></pre>
+                <pre class="bg-dojo-950 border border-dojo-700 rounded-lg p-3 text-xs overflow-x-auto leading-relaxed"><code>{lesson.sqlChallenge.seedSql}</code></pre>
+              </div>
+            </details>
+
+            <textarea
+              class="sql-editor w-full h-40 bg-dojo-950 border border-dojo-700 rounded-lg p-4 font-mono text-sm text-gray-100 leading-relaxed focus:border-emerald-400/60 focus:outline-none resize-y"
+              spellcheck="false"
+              placeholder="SELECT ..."
+            ></textarea>
+
+            <div class="flex flex-wrap items-center gap-3 mt-3">
+              <button class="sql-run-btn bg-emerald-400 text-dojo-950 font-bold px-5 py-2 rounded-lg hover:bg-emerald-300 transition text-sm">
+                <i class="fa-solid fa-play mr-1"></i>実行して採点
+              </button>
+              <button class="sql-hints-btn text-sm text-gray-400 hover:text-emerald-400 transition">
+                <i class="fa-regular fa-lightbulb mr-1"></i>ヒント
+              </button>
+              <button class="sql-solution-btn text-sm text-gray-400 hover:text-emerald-400 transition">
+                <i class="fa-regular fa-eye mr-1"></i>模範解答を見る
+              </button>
+            </div>
+
+            <div class="sql-hints hidden mt-4 bg-dojo-800 border border-dojo-700 rounded-lg p-4">
+              <p class="text-xs font-bold text-emerald-400 mb-2">
+                <i class="fa-regular fa-lightbulb mr-1"></i>ヒント
+              </p>
+              <ul class="space-y-1 text-sm text-gray-300">
+                {lesson.sqlChallenge.hints.map((h, i) => (
+                  <li class="flex gap-2">
+                    <span class="text-gray-500 shrink-0">{i + 1}.</span>
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div class="sql-solution hidden mt-4">
+              <p class="text-xs font-bold text-emerald-400 mb-2">
+                <i class="fa-regular fa-eye mr-1"></i>模範解答（読んで理解したら、自力で書き直してみましょう）
+              </p>
+              <pre class="bg-dojo-950 border border-dojo-700 rounded-lg p-4 text-xs overflow-x-auto leading-relaxed"><code>{lesson.sqlChallenge.solutionSql}</code></pre>
+            </div>
+
+            <div class="sql-results hidden mt-4"></div>
+
+            <script
+              type="application/json"
+              class="sql-challenge-data"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  schemaSql: lesson.sqlChallenge.schemaSql,
+                  seedSql: lesson.sqlChallenge.seedSql,
+                  solutionSql: lesson.sqlChallenge.solutionSql,
+                }).replace(/</g, '\\u003c'),
               }}
             />
           </section>

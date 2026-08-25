@@ -43,12 +43,45 @@ export const techTracks: Track[] = [
             ],
             quiz: {
               question: 'アニメーションを滑らかにしたい場合、最も避けるべきプロパティの変更はどれ？',
+              hint: 'ブラウザの描画工程「レイアウト → ペイント → 合成」のうち、最もコストが高いのは「レイアウト（リフロー）」の再計算です。どのプロパティがレイアウトを引き起こすかを考えましょう。',
               options: [
                 { text: 'transform: translateX()', correct: false, why: 'transformは合成レイヤーで処理され、レイアウトを再計算しないため高速です。' },
                 { text: 'opacity', correct: false, why: 'opacityも合成のみで処理されるため高速です。' },
                 { text: 'top / left の直接変更', correct: true, why: '正解！top/leftの変更はレイアウト（リフロー）を引き起こし、全要素の位置再計算が走るため高コストです。' },
                 { text: 'filter: blur()', correct: false, why: 'filterはペイントコストが高いですが、リフローほど重くはありません。最も避けるべきはレイアウト変更です。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'CSSプロパティをブラウザの描画コストで分類する関数を書いてください。プロパティ名を受け取り、レイアウト再計算が必要なもの（width, height, top, left, margin, padding）は \'layout\'、ペイントのみのもの（color, background, box-shadow）は \'paint\'、合成のみで済むもの（transform, opacity）は \'composite\' を返します。それ以外は \'unknown\' です。',
+              functionName: 'classifyCssProperty',
+              signature: 'function classifyCssProperty(property)',
+              starterCode: `function classifyCssProperty(property) {
+  // 配列にまとめて includes() で判定すると簡潔
+
+}`,
+              tests: [
+                { description: "'width' → 'layout'", script: "fn('width')", expected: '"layout"' },
+                { description: "'top' → 'layout'", script: "fn('top')", expected: '"layout"' },
+                { description: "'transform' → 'composite'", script: "fn('transform')", expected: '"composite"' },
+                { description: "'opacity' → 'composite'", script: "fn('opacity')", expected: '"composite"' },
+                { description: "'color' → 'paint'", script: "fn('color')", expected: '"paint"' },
+                { description: "'font-size' → 'unknown'", script: "fn('font-size')", expected: '"unknown"' },
+              ],
+              hints: [
+                "const layoutProps = ['width','height','top','left','margin','padding'] のように3つの配列を定義",
+                'if (layoutProps.includes(property)) return \'layout\' の順に判定し、最後に \'unknown\' を返す',
+              ],
+              solution: `function classifyCssProperty(property) {
+  const layoutProps = ['width', 'height', 'top', 'left', 'margin', 'padding']
+  const paintProps = ['color', 'background', 'box-shadow']
+  const compositeProps = ['transform', 'opacity']
+
+  if (layoutProps.includes(property)) return 'layout'
+  if (paintProps.includes(property)) return 'paint'
+  if (compositeProps.includes(property)) return 'composite'
+  return 'unknown'
+}`,
             },
           },
           {
@@ -90,12 +123,40 @@ export const techTracks: Track[] = [
   )
 }`,
               question: 'このコードの最も重大な問題は？',
+              hint: '「動くか」ではなく「壊れる条件」を列挙してみましょう。APIが失敗したら？ ネットワークが遅かったら？ 結果が0件だったら？ — 画面はユーザーに何を伝えるでしょうか。',
               options: [
                 { text: 'key prop がない', correct: false, why: '確かに指摘事項ですが「最も重大」ではありません。警告レベルの問題です。' },
                 { text: 'フェッチのエラー処理とローディング状態がない', correct: true, why: '正解！APIが失敗すると画面は永遠に空のまま、ユーザーには何も伝わりません。エラー・ローディング・空状態の3状態設計はUIの基本です。' },
                 { text: 'div onClick でボタンを作っている', correct: false, why: 'アクセシビリティ上の重要な指摘ですが、機能的には動作します。エラー処理欠如は機能が壊れる問題なのでより重大です。' },
                 { text: 'useStateの型指定がない', correct: false, why: 'TypeScriptでは推論が効くため致命的ではありません。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'XSS対策の基礎であるHTMLエスケープ関数を書いてください。文字列中の & < > " をそれぞれ &amp; &lt; &gt; &quot; に置換して返します。重要: & は最初に置換しないと、後で置換した &lt; 等の & が二重エスケープされます。',
+              functionName: 'escapeHtml',
+              signature: 'function escapeHtml(str)',
+              starterCode: `function escapeHtml(str) {
+  // replace() をチェーンする。& の置換が最優先！
+
+}`,
+              tests: [
+                { description: "'<b>' → '&lt;b&gt;'", script: "fn('<b>')", expected: '"&lt;b&gt;"' },
+                { description: "'a & b' → 'a &amp; b'", script: "fn('a & b')", expected: '"a &amp; b"' },
+                { description: '二重エスケープされない', script: "fn('&lt;')", expected: '"&amp;lt;"' },
+                { description: '引用符も変換', script: 'fn(\'say "hi"\')', expected: '"say &quot;hi&quot;"' },
+              ],
+              hints: [
+                "return str.replace(/&/g, '&amp;').replace(/</g, '&lt;')... の順にチェーン",
+                '& を最初に置換する理由: 後から &lt; を置換すると、その中の & が再度変換されてしまう',
+              ],
+              solution: `function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}`,
             },
           },
         ],
@@ -124,12 +185,42 @@ export const techTracks: Track[] = [
             ],
             quiz: {
               question: '商品検索画面の「絞り込み条件」を管理する最適な場所は？',
+              hint: '判断フローを思い出しましょう: ①URLで表現できる？ ②サーバーのデータ？ ③どの範囲で共有？ 「検索結果を同僚にURLで送りたい」という場面を想像すると答えが見えます。',
               options: [
                 { text: 'グローバルストア（Redux等）', correct: false, why: 'グローバル化すると画面を離れても残り続け、予期せぬ動作の原因になります。' },
                 { text: 'URLクエリパラメータ', correct: true, why: '正解！検索条件をURLに置けば、結果の共有・ブックマーク・ブラウザの戻るボタンがすべて自然に動きます。' },
                 { text: 'localStorage', correct: false, why: '永続化には便利ですが、URLを共有しても条件が伝わらず、タブ間で不整合が起きます。' },
                 { text: 'コンポーネントのuseState', correct: false, why: '画面内では動きますが、リロードや共有で状態が消え、UXを損ないます。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '検索条件をURLに持たせる練習です。条件オブジェクトからクエリ文字列を組み立てる関数を書いてください。params = { q, category, page } を受け取り \'/search?q=...&category=...&page=...\' の形式で返します。値が undefined/null/空文字 のキーは除外し、値は encodeURIComponent でエンコードしてください。キーの順番はオブジェクトの定義順（Object.entries）とします。',
+              functionName: 'buildSearchUrl',
+              signature: 'function buildSearchUrl(params)',
+              starterCode: `function buildSearchUrl(params) {
+  // Object.entries(params) で [キー, 値] のペアをループ
+  // 値が falsy なものは除外し、key=value を & で連結
+
+}`,
+              tests: [
+                { description: '全パラメータあり', script: "fn({q:'shoes',category:'sports',page:2})", expected: '"/search?q=shoes&category=sports&page=2"' },
+                { description: '空文字とundefinedは除外', script: "fn({q:'',category:'books',page:undefined})", expected: '"/search?category=books"' },
+                { description: '日本語はエンコード', script: "fn({q:'靴'})", expected: '"/search?q=%E9%9D%B4"' },
+                { description: '条件なしならパスのみ', script: 'fn({})', expected: '"/search"' },
+              ],
+              hints: [
+                'const pairs = Object.entries(params).filter(([k, v]) => v) で有効なものだけ残す',
+                'pairs.map(([k, v]) => k + \'=\' + encodeURIComponent(v)).join(\'&\') でクエリ部分を作る',
+                'クエリが空なら \'/search\' だけを返し、あれば \'/search?\' + query',
+              ],
+              solution: `function buildSearchUrl(params) {
+  const query = Object.entries(params)
+    .filter(([key, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => key + '=' + encodeURIComponent(value))
+    .join('&')
+  return query ? '/search?' + query : '/search'
+}`,
             },
           },
           {
@@ -282,12 +373,46 @@ export const techTracks: Track[] = [
             ],
             quiz: {
               question: '注文APIで「在庫不足で注文を作成できなかった」場合、返すべきステータスコードは？',
+              hint: 'まず大分類を考えます: リクエスト自体は正しい（4xx系）？ サーバーの障害（5xx系）？ 成功（2xx系）？ その上で「現在のリソース状態と矛盾している」ことを表すコードはどれでしょう。',
               options: [
                 { text: '200 OK + エラーメッセージ', correct: false, why: '成功を示す200で失敗を返すと、監視・リトライ・クライアント実装のすべてが壊れます。' },
                 { text: '500 Internal Server Error', correct: false, why: '500はサーバー側の予期せぬ障害用です。在庫不足は正常なビジネスルールの結果です。' },
                 { text: '409 Conflict または 422 Unprocessable Entity', correct: true, why: '正解！リクエスト自体は正しいが、現在のリソース状態と矛盾するため409/422が適切です。クライアントは「在庫を確認して再表示」という適切な対処ができます。' },
                 { text: '404 Not Found', correct: false, why: '404はリソースが存在しない場合です。商品は存在するが在庫がない、という状態とは異なります。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'ステータスコードの対応表をコードで実装してください。状況を表す文字列を受け取り、適切なHTTPステータスコード（数値）を返します。対応: \'success\'→200, \'created\'→201, \'bad_request\'→400, \'unauthorized\'→401, \'forbidden\'→403, \'not_found\'→404, \'conflict\'→409。未定義の状況は 500 を返してください。',
+              functionName: 'httpStatusFor',
+              signature: 'function httpStatusFor(situation)',
+              starterCode: `function httpStatusFor(situation) {
+  // オブジェクトの対応表（マップ）を使うと if 文の羅列より簡潔
+
+}`,
+              tests: [
+                { description: "'success' → 200", script: "fn('success')", expected: '200' },
+                { description: "'created' → 201", script: "fn('created')", expected: '201' },
+                { description: "'not_found' → 404", script: "fn('not_found')", expected: '404' },
+                { description: "'conflict' → 409", script: "fn('conflict')", expected: '409' },
+                { description: '未定義 → 500', script: "fn('unknown_thing')", expected: '500' },
+              ],
+              hints: [
+                'const table = { success: 200, created: 201, ... } のように定義',
+                'return table[situation] ?? 500 — ?? は「左が undefined/null なら右」を返す演算子',
+              ],
+              solution: `function httpStatusFor(situation) {
+  const table = {
+    success: 200,
+    created: 201,
+    bad_request: 400,
+    unauthorized: 401,
+    forbidden: 403,
+    not_found: 404,
+    conflict: 409,
+  }
+  return table[situation] ?? 500
+}`,
             },
           },
           {
@@ -327,12 +452,35 @@ export const techTracks: Track[] = [
   return c.json(order, 201)
 })`,
               question: 'このコードの最も危険な問題は？',
+              hint: '2人のユーザーが「在庫1」の商品に同時に注文したら何が起きるか、コードを1行ずつ頭の中で実行してみましょう。チェックと更新の間に別のリクエストが割り込めないかがポイントです。',
               options: [
                 { text: '変数名が省略されていて読みにくい', correct: false, why: '命名は改善点ですが、危険度は低いです。' },
                 { text: 'チェックと更新の分離により、同時リクエストで在庫がマイナスになる', correct: true, why: '正解！2つのリクエストが同時に stock=1 を読むと、両方とも注文が作成され在庫が-1に。これは「TOCTOU競合」と呼ばれ、トランザクション+排他制御（SELECT ... FOR UPDATEや原子的UPDATE）で防ぎます。' },
                 { text: 'エラーメッセージが英語である', correct: false, why: 'APIのエラーメッセージは英語でも実用上問題ありません。' },
                 { text: 'バリデーションがない', correct: false, why: '確かに指摘事項ですが、在庫競合はビジネス損害に直結するため優先度が上です。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '冪等キーを使った決済処理の判定関数を実装してください。processedKeys（処理済み冪等キーの配列）と今回のキーを受け取り、処理済みなら \'duplicate\'、未処理なら \'charged\' を返してください。',
+              functionName: 'checkPayment',
+              signature: 'function checkPayment(processedKeys, key)',
+              starterCode: `function checkPayment(processedKeys, key) {
+  // processedKeys に key が含まれるかで分岐
+
+}`,
+              tests: [
+                { description: '処理済みキー → duplicate', script: "fn(['k1','k2'], 'k1')", expected: '"duplicate"' },
+                { description: '新規キー → charged', script: "fn(['k1','k2'], 'k3')", expected: '"charged"' },
+                { description: '空の履歴 → charged', script: "fn([], 'k1')", expected: '"charged"' },
+              ],
+              hints: [
+                'processedKeys.includes(key) で処理済みか判定できる',
+                "return processedKeys.includes(key) ? 'duplicate' : 'charged' の1行でも書ける",
+              ],
+              solution: `function checkPayment(processedKeys, key) {
+  return processedKeys.includes(key) ? 'duplicate' : 'charged'
+}`,
             },
           },
         ],
@@ -415,6 +563,7 @@ function canViewOrder(user, order) {
             },
             quiz: {
               question: '「マイページ画面では自分の注文へのリンクしか表示していない。API側の認可チェックは省略した」という設計の問題点は？',
+              hint: '悪意あるユーザーはブラウザの画面だけを使うとは限りません。curl や DevTools で API を直接呼んだらどうなるか、IDOR（URLのID書き換え）の観点で考えてみましょう。',
               options: [
                 { text: '問題ない。UIで制御できているため', correct: false, why: 'UIの非表示はセキュリティ対策ではありません。' },
                 { text: 'APIを直接叩かれると他人の注文にアクセスできる', correct: true, why: '正解！curlやブラウザのDevToolsで誰でもAPIを直接呼べます。UIの制御は「利便性」であり「防御」ではありません。認可は必ずサーバー側で。' },
@@ -629,11 +778,30 @@ function canViewOrder(user, order) {
             ],
             quiz: {
               question: 'ECサイトで「注文時の商品価格」を保存する正しい設計は？',
+              hint: '「商品価格は将来変わるか？」を考えてみましょう。変わるなら、注文と価格をどう結びつけると「過去の注文金額」が壊れずに済むでしょうか。',
               options: [
                 { text: '注文から商品マスタを参照し、価格は常に商品マスタから取得する', correct: false, why: '商品価格が改定されると、過去の注文の金額まで変わってしまい、請求額と一致しなくなります。' },
                 { text: '注文明細テーブルに注文時点の価格をコピーして保存する', correct: true, why: '正解！「その時点の事実」はスナップショットとして保存します。正規化の原則よりも「ビジネス上の事実の保存」が優先される代表例です。' },
                 { text: '価格の履歴テーブルを作り、注文日時で価格を引く', correct: false, why: '理論上は可能ですが、クエリが複雑になり、バグの温床になります。スナップショットの方がシンプルで確実です。' },
                 { text: '価格は変更しない運用ルールにする', correct: false, why: 'ビジネス要件を技術で縛るのは本末転倒です。価格変更は当然に発生します。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'ユーザーごとの注文合計金額を求めるSQLを書いてください。要件: ユーザー名(name)と注文合計(total)を、合計金額の大きい順に取得します。users テーブルと orders テーブルを JOIN し、GROUP BY でユーザーごとに集計してください。',
+              schemaSql: `CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount INTEGER);`,
+              seedSql: `INSERT INTO users VALUES (1, '田中'), (2, '佐藤'), (3, '鈴木');
+INSERT INTO orders VALUES (1, 1, 3000), (2, 2, 1500), (3, 1, 2000), (4, 2, 4500), (5, 3, 800);`,
+              solutionSql: `SELECT u.name AS name, SUM(o.amount) AS total
+FROM users u
+JOIN orders o ON o.user_id = u.id
+GROUP BY u.id, u.name
+ORDER BY total DESC;`,
+              hints: [
+                'JOIN で users と orders を o.user_id = u.id で結合する',
+                'SUM(o.amount) で金額を合計し、GROUP BY でユーザーごとにまとめる',
+                '並び順は ORDER BY total DESC（DESC = 大きい順）',
               ],
             },
           },
@@ -727,6 +895,23 @@ return c.json(posts)`,
                 { text: 'N+1問題。JOINまたはIN句で一括取得すべき', correct: true, why: '正解！例えば SELECT * FROM posts JOIN users ON posts.user_id = users.id で1回のクエリで取得できます。または投稿のuser_idを集めてIN句で一括取得します。' },
                 { text: 'キャッシュを使うべき', correct: false, why: 'キャッシュは根本解決ではありません。まずクエリ自体を最適化しましょう。' },
                 { text: 'インデックスを貼るべき', correct: false, why: 'インデックスはクエリ「1本あたり」の速度を改善しますが、クエリ「本数」の問題は解決しません。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'N+1問題をSQLで解決しましょう。要件: 「すべての投稿のタイトルと著者名を、1回のクエリ（JOIN）で取得する」SELECT文を書いてください。投稿IDの昇順で並べてください。',
+              schemaSql: `CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE posts (id INTEGER PRIMARY KEY, user_id INTEGER, title TEXT);`,
+              seedSql: `INSERT INTO users VALUES (1, '田中'), (2, '佐藤');
+INSERT INTO posts VALUES (1, 1, 'はじめての投稿'), (2, 2, 'SQL入門'), (3, 1, 'N+1とは');`,
+              solutionSql: `SELECT p.title AS title, u.name AS author
+FROM posts p
+JOIN users u ON p.user_id = u.id
+ORDER BY p.id;`,
+              hints: [
+                'FROM posts p JOIN users u ON p.user_id = u.id で結合（ループ不要・1クエリで済む）',
+                '取得列は p.title と u.name。別名（AS）を付けると結果が読みやすい',
+                '並び順は ORDER BY p.id（昇順は ASC で、省略すると昇順）',
               ],
             },
           },

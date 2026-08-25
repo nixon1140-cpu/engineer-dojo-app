@@ -1,10 +1,12 @@
 import type { Track, Scenario, Lesson } from '../types'
+import { beginnerTracks } from './tracks/beginner'
 import { techTracks } from './tracks/tech'
 import { businessTracks } from './tracks/business'
 import { aiTracks } from './tracks/ai-era'
 import { scenarios } from './scenarios'
 
-export const tracks: Track[] = [...techTracks, ...businessTracks, ...aiTracks]
+// 入門トラックを先頭に配置（初学者はここから始める）
+export const tracks: Track[] = [...beginnerTracks, ...techTracks, ...businessTracks, ...aiTracks]
 export { scenarios }
 
 export function getTrack(id: string): Track | undefined {

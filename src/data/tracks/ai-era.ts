@@ -42,12 +42,39 @@ export const aiTracks: Track[] = [
             ],
             quiz: {
               question: 'AIに「パスワードリセット機能」を実装させた。レビューで最優先で確認すべきことは？',
+              hint: 'AIは「動くhappy path」を優先しがちです。パスワードリセットが攻撃者に悪用されるとしたら、どこを突かれるでしょう？ セキュリティの観点で考えてみましょう。',
               options: [
                 { text: 'コードスタイルがプロジェクトの規約に合っているか', correct: false, why: 'スタイルはLinterで機械的に直せます。セキュリティほど優先度は高くありません。' },
                 { text: 'リセットトークンの有効期限・使い回し防止・推測困難性', correct: true, why: '正解！パスワードリセットは攻撃者の主要ターゲットです。トークンが推測可能・期限なし・再利用可能だとアカウント乗っ取りに直結します。AIはhappy pathを優先するため、セキュリティ要件は人間が確認する最重要項目です。' },
                 { text: 'コメントが十分に書かれているか', correct: false, why: 'コメントは可読性の問題であり、機能の正しさの検証ではありません。' },
                 { text: '変数名が分かりやすいか', correct: false, why: '命名は重要ですが、最優先の検証事項ではありません。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'AIに書かせたコードを検証する練習です。ユーザー入力が「危険な文字」を含むかチェックする関数を書いてください。< > & " \' のいずれかを含めば true、含まなければ false を返します（XSS対策の第一歩です）。',
+              functionName: 'containsDangerousChars',
+              signature: 'function containsDangerousChars(input)',
+              starterCode: `function containsDangerousChars(input) {
+  // input が < > & " ' のいずれかを含むか判定
+  // ヒント: 配列にまとめて some() を使うと簡潔
+
+}`,
+              tests: [
+                { description: "'<script>' → true", script: "fn('<script>')", expected: 'true' },
+                { description: "'こんにちは' → false", script: "fn('こんにちは')", expected: 'false' },
+                { description: "O'Neill → true", script: "fn(\"O'Neill\")", expected: 'true' },
+                { description: "'a & b' → true", script: "fn('a & b')", expected: 'true' },
+                { description: "'user@example.com' → false", script: "fn('user@example.com')", expected: 'false' },
+              ],
+              hints: [
+                "const dangerous = ['<', '>', '&', '\"', \"'\"] と定義して、dangerous.some(ch => input.includes(ch)) を返す",
+                'some() は「一つでも条件を満たせば true」を返す配列メソッドです',
+              ],
+              solution: `function containsDangerousChars(input) {
+  const dangerous = ['<', '>', '&', '"', "'"]
+  return dangerous.some(ch => input.includes(ch))
+}`,
             },
           },
           {
@@ -69,12 +96,40 @@ export const aiTracks: Track[] = [
             ],
             quiz: {
               question: '「商品検索機能を作って」という要件。実装前に確認すべき仕様の穴として適切でないものは？',
+              hint: '「適切でないもの」を選ぶ問題です。3つは「ユーザー体験やビジネスルールに関わる仕様の曖昧さ」、1つは「開発環境の技術情報」です。',
               options: [
                 { text: '検索結果が0件の時の表示', correct: false, why: '重要な確認事項です。0件時のUX設計は必須です。' },
                 { text: '大文字小文字・全角半角の扱い', correct: false, why: '日本語検索では必須の確認事項です。' },
                 { text: '使用するプログラミング言語のバージョン', correct: false, why: '正解！これは「技術的な環境情報」であり、要件の言語化で確認する「仕様の穴」ではありません。環境情報は既に決まっていることが多く、要件の曖昧さとは別の話です。' },
                 { text: '在庫切れ商品を検索結果に含めるか', correct: false, why: 'ビジネス要件に関わる重要な確認事項です。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '要件の言語化をコードで体験します。検索結果の表示件数に関する受け入れ条件を関数として実装してください。条件: 結果が0件なら "該当なし"、上限(第2引数)を超えるなら "1-{上限}件 / 全{総数}件"、それ以外なら "全{総数}件" を返します。',
+              functionName: 'formatResultCount',
+              signature: 'function formatResultCount(total, limit)',
+              starterCode: `function formatResultCount(total, limit) {
+  // 0件 → "該当なし"
+  // total > limit → "1-{limit}件 / 全{total}件"
+  // それ以外 → "全{total}件"
+
+}`,
+              tests: [
+                { description: '0件 → "該当なし"', script: 'fn(0, 20)', expected: '"該当なし"' },
+                { description: '15件(上限20) → "全15件"', script: 'fn(15, 20)', expected: '"全15件"' },
+                { description: 'ちょうど上限 → "全20件"', script: 'fn(20, 20)', expected: '"全20件"' },
+                { description: '95件(上限20) → "1-20件 / 全95件"', script: 'fn(95, 20)', expected: '"1-20件 / 全95件"' },
+              ],
+              hints: [
+                'if (total === 0) → if (total > limit) → それ以外、の順に early return すると読みやすい',
+                '文字列の埋め込みは `1-${limit}件 / 全${total}件` のようなテンプレートリテラルで',
+              ],
+              solution: `function formatResultCount(total, limit) {
+  if (total === 0) return '該当なし'
+  if (total > limit) return \`1-\${limit}件 / 全\${total}件\`
+  return \`全\${total}件\`
+}`,
             },
           },
         ],
@@ -103,12 +158,41 @@ export const aiTracks: Track[] = [
             ],
             quiz: {
               question: '設計レビューで「この設計は妥当か？」を問われた。最も適切な評価方法は？',
+              hint: '「妥当性」とは「一般的な正しさ」ではなく「このプロジェクトのコンテキストへの適合度」です。コンテキストを知らない相手（一般論・他社事例・AI）に答えを求めても核心的な評価にはなりません。',
               options: [
                 { text: 'ベストプラクティスに従っているか確認する', correct: false, why: 'ベストプラクティスは文脈依存です。「一般的に良い」と「このプロジェクトで妥当」は別です。' },
                 { text: '要件・制約・将来の変化予測に照らして、トレードオフが明示されているか確認する', correct: true, why: '正解！妥当性は「コンテキストに対する適合度」です。何と引き換えに何を得たかが明示された設計は、検証・修正が可能です。' },
                 { text: '有名企業の類似システムと比較する', correct: false, why: '参考にはなりますが、規模・チーム・フェーズが異なれば妥当な設計も異なります。' },
                 { text: 'AIに評価させる', correct: false, why: 'AIはコンテキスト（事業フェーズ・チームスキル・納期）を知らないため、一般論しか返せません。最終判断は人間の仕事です。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                '設計のトレードオフを定量化する練習です。2つの設計案のスコアを計算して推薦案を返す関数を書いてください。各案は { name, speed: 実装の速さ(1-10), extensibility: 拡張性(1-10) }。重要度は weights = { speed, extensibility } で与えられ、スコア = speed×w.speed + extensibility×w.extensibility。スコアが高い方のnameを返し、同点なら "どちらでも" を返します。',
+              functionName: 'recommendDesign',
+              signature: 'function recommendDesign(a, b, weights)',
+              starterCode: `function recommendDesign(a, b, weights) {
+  // a, b: { name, speed, extensibility }
+  // weights: { speed, extensibility }
+  // スコア = speed * weights.speed + extensibility * weights.extensibility
+
+}`,
+              tests: [
+                { description: '速度重視なら案A', script: "fn({name:'A',speed:9,extensibility:3}, {name:'B',speed:4,extensibility:9}, {speed:2,extensibility:1})", expected: '"A"' },
+                { description: '拡張性重視なら案B', script: "fn({name:'A',speed:9,extensibility:3}, {name:'B',speed:4,extensibility:9}, {speed:1,extensibility:2})", expected: '"B"' },
+                { description: '同点なら「どちらでも」', script: "fn({name:'A',speed:5,extensibility:5}, {name:'B',speed:5,extensibility:5}, {speed:1,extensibility:1})", expected: '"どちらでも"' },
+              ],
+              hints: [
+                'const scoreA = a.speed * weights.speed + a.extensibility * weights.extensibility として比較',
+                "if (scoreA > scoreB) return a.name / if (scoreB > scoreA) return b.name / return 'どちらでも'",
+              ],
+              solution: `function recommendDesign(a, b, weights) {
+  const scoreA = a.speed * weights.speed + a.extensibility * weights.extensibility
+  const scoreB = b.speed * weights.speed + b.extensibility * weights.extensibility
+  if (scoreA > scoreB) return a.name
+  if (scoreB > scoreA) return b.name
+  return 'どちらでも'
+}`,
             },
           },
           {
@@ -128,6 +212,21 @@ export const aiTracks: Track[] = [
               'ルールはまず従い、理解してから改善提案する',
               '10年動くコードは10年分のビジネス知識の資産',
             ],
+            codeExercise: {
+              prompt: '以下はレガシーシステムに残る「意味不明に見えるコード」です。新人のあなたが最初に取るべき行動を選んでください。',
+              code: `// TODO: なぜか 0.9 を掛けている。消したい
+function calcFee(amount) {
+  return Math.floor(amount * 0.9)
+}`,
+              question: 'この「0.9」を即座に削除してコミットしてはいけない理由として、最も適切なものは？',
+              hint: 'チェスタートンの柵: 「なぜそこにあるか分からないもの」を取り除く前に、まず「なぜ置かれたか」を調べます。この0.9に埋め込まれたビジネスルール（例: 特定顧客との契約上の10%割引）があるかもしれません。',
+              options: [
+                { text: '一見無意味なコードにも、過去の契約・障害対応などの文脈が埋め込まれている可能性があるから', correct: true, why: '正解！「0.9」は特定顧客との値引き契約や過去の障害対応の名残かもしれません。まず git log / 担当者ヒアリング / 仕様書で文脈を確認します。文脈がなければ削除の提案自体は正当です。' },
+                { text: 'Math.floor を使っているから', correct: false, why: '端数処理自体は料金計算では一般的で、削除を止める理由にはなりません。' },
+                { text: 'コメントに TODO と書かれているから', correct: false, why: 'TODOは「いずれやりたい」の意思表示であり、削除禁止の根拠ではありません。' },
+                { text: 'テストが書かれていないから', correct: false, why: 'テストがないことは変更リスクを高めますが、本質的な理由は「失われた文脈」の存在です。' },
+              ],
+            },
           },
         ],
       },

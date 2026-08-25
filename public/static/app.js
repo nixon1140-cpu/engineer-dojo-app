@@ -145,6 +145,7 @@
       // ページ側で各トラックの総数は表示済み。完了数は progress.lessons の前方一致で推定。
       // lesson ID はトラックごとのprefix（fe-, be-, infra-, db-, mkt-, mgmt-, sales-, ai-）を持つ
       const prefixes = {
+        beginner: 'bg-',
         frontend: 'fe-',
         backend: 'be-',
         infrastructure: 'infra-',
@@ -448,4 +449,195 @@
 
     renderStep()
   }
+
+  /* ========== SQL演習（ブラウザ内SQLite: sql.js） ========== */
+  const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/'
+  let sqlJsPromise = null
+
+  function loadSqlJs() {
+    if (!sqlJsPromise) {
+      sqlJsPromise = new Promise(function (resolve, reject) {
+        if (window.initSqlJs) {
+          resolve(window.initSqlJs({ locateFile: function (f) { return SQLJS_CDN + f } }))
+          return
+        }
+        const s = document.createElement('script')
+        s.src = SQLJS_CDN + 'sql-wasm.js'
+        s.onload = function () {
+          resolve(window.initSqlJs({ locateFile: function (f) { return SQLJS_CDN + f } }))
+        }
+        s.onerror = function () { reject(new Error('sql.js の読み込みに失敗しました（ネットワークを確認してください）')) }
+        document.head.appendChild(s)
+      })
+    }
+    return sqlJsPromise
+  }
+
+  function runQuery(db, sql) {
+    // 最後のSELECT文の結果を取得（複数文対応）
+    const results = db.exec(sql)
+    if (results.length === 0) return { columns: [], values: [] }
+    const last = results[results.length - 1]
+    return { columns: last.columns, values: last.values }
+  }
+
+  function normalizeRows(res) {
+    // 比較用に正規化: 行をJSON配列化して順序込みで比較
+    return JSON.stringify(res.values)
+  }
+
+  function renderTable(res) {
+    if (!res || res.columns.length === 0) {
+      return '<p class="text-gray-500 text-xs">（結果行なし）</p>'
+    }
+    let html = '<div class="overflow-x-auto"><table class="text-xs border-collapse">'
+    html += '<thead><tr>'
+    res.columns.forEach(function (c) {
+      html += '<th class="border border-dojo-700 bg-dojo-800 px-2 py-1 text-emerald-300 font-bold whitespace-nowrap">' + escapeHtml(c) + '</th>'
+    })
+    html += '</tr></thead><tbody>'
+    res.values.forEach(function (row) {
+      html += '<tr>'
+      row.forEach(function (v) {
+        html += '<td class="border border-dojo-700 px-2 py-1 text-gray-300 whitespace-nowrap">' + escapeHtml(v === null ? 'NULL' : String(v)) + '</td>'
+      })
+      html += '</tr>'
+    })
+    html += '</tbody></table></div>'
+    return html
+  }
+
+  document.querySelectorAll('.sql-challenge').forEach(function (block) {
+    const editor = block.querySelector('.sql-editor')
+    const runBtn = block.querySelector('.sql-run-btn')
+    const hintsBtn = block.querySelector('.sql-hints-btn')
+    const solutionBtn = block.querySelector('.sql-solution-btn')
+    const hintsEl = block.querySelector('.sql-hints')
+    const solutionEl = block.querySelector('.sql-solution')
+    const resultsEl = block.querySelector('.sql-results')
+    const lessonId = block.dataset.lessonId
+
+    let data
+    try {
+      data = JSON.parse(block.querySelector('.sql-challenge-data').textContent)
+    } catch (e) {
+      console.error('SQLチャレンジデータの読み込みに失敗', e)
+      return
+    }
+
+    hintsBtn.addEventListener('click', function () {
+      hintsEl.classList.toggle('hidden')
+    })
+    solutionBtn.addEventListener('click', function () {
+      if (
+        solutionEl.classList.contains('hidden') &&
+        !confirm('模範解答を表示します。先に自力で挑戦しましたか？')
+      ) {
+        return
+      }
+      solutionEl.classList.toggle('hidden')
+    })
+
+    // Tabキーでインデント
+    editor.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        const start = this.selectionStart
+        const end = this.selectionEnd
+        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end)
+        this.selectionStart = this.selectionEnd = start + 2
+      }
+    })
+
+    runBtn.addEventListener('click', function () {
+      const sql = editor.value.trim()
+      if (!sql) {
+        resultsEl.classList.remove('hidden')
+        resultsEl.innerHTML =
+          '<div class="p-4 rounded-lg bg-amber-400/10 border border-amber-400/40 text-sm text-gray-300">SQLを入力してください。</div>'
+        return
+      }
+
+      runBtn.disabled = true
+      runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>SQLiteを準備中…'
+      resultsEl.classList.remove('hidden')
+
+      loadSqlJs()
+        .then(function (SQL) {
+          runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>実行中…'
+          const db = new SQL.Database()
+          try {
+            db.run(data.schemaSql)
+            db.run(data.seedSql)
+          } catch (e) {
+            throw new Error('問題データの準備に失敗: ' + e.message)
+          }
+
+          // ユーザーのSQLを実行
+          let userRes
+          try {
+            userRes = runQuery(db, sql)
+          } catch (e) {
+            resultsEl.innerHTML =
+              '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
+              '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-bug mr-1"></i>SQLエラー</p>' +
+              '<p class="text-gray-300 font-mono text-xs">' + escapeHtml(String(e.message)) + '</p>' +
+              '<p class="text-gray-500 text-xs mt-2">構文・テーブル名・カラム名を確認してください。テーブル定義は上の「テーブル定義と初期データを見る」で確認できます。</p></div>'
+            db.close()
+            return
+          }
+
+          // 模範解答の結果と比較
+          let expectedRes
+          try {
+            expectedRes = runQuery(db, data.solutionSql)
+          } catch (e) {
+            throw new Error('模範解答の実行に失敗: ' + e.message)
+          }
+
+          const colsOk = JSON.stringify(userRes.columns) === JSON.stringify(expectedRes.columns)
+          const rowsOk = normalizeRows(userRes) === normalizeRows(expectedRes)
+          const passed = colsOk && rowsOk
+
+          let html =
+            '<div class="p-4 rounded-lg border text-sm ' +
+            (passed ? 'bg-emerald-400/10 border-emerald-400/40' : 'bg-dojo-800 border-dojo-700') + '">'
+          if (passed) {
+            html +=
+              '<p class="font-bold text-emerald-400 mb-2"><i class="fa-solid fa-trophy mr-1"></i>正解！模範解答と一致しました</p>'
+          } else {
+            html +=
+              '<p class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-flask mr-1"></i>結果が模範解答と一致しません</p>' +
+              '<ul class="text-xs text-gray-400 space-y-1 mb-3">' +
+              (!colsOk ? '<li>・カラム構成が異なります（取得する列・列名を確認）</li>' : '') +
+              (!rowsOk ? '<li>・行の内容または順序が異なります（条件・並び順を確認）</li>' : '') +
+              '</ul>'
+          }
+          html += '<p class="text-xs font-bold text-gray-400 mb-1">あなたの結果:</p>' + renderTable(userRes)
+          if (!passed) {
+            html += '<p class="text-xs font-bold text-gray-400 mt-3 mb-1">期待される結果:</p>' + renderTable(expectedRes)
+          }
+          html += passed
+            ? '<p class="text-xs text-gray-400 mt-3">合格です。「模範解答」と見比べて、別の書き方も確認しましょう。</p>'
+            : '<p class="text-xs text-gray-400 mt-3">期待結果との差分を確認して修正してみましょう。ヒントも活用できます。</p>'
+          html += '</div>'
+          resultsEl.innerHTML = html
+
+          if (passed && lessonId && window.Dojo) {
+            window.Dojo.recordQuiz(lessonId + '-sql', true)
+          }
+          db.close()
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        })
+        .catch(function (e) {
+          resultsEl.innerHTML =
+            '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm text-gray-300">' +
+            '<i class="fa-solid fa-triangle-exclamation text-red-400 mr-1"></i>' + escapeHtml(String(e.message)) + '</div>'
+        })
+        .finally(function () {
+          runBtn.disabled = false
+          runBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i>実行して採点'
+        })
+    })
+  })
 })()
