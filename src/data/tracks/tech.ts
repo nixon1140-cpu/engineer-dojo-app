@@ -605,12 +605,36 @@ function canViewOrder(user, order) {
   return c.json({ error: 'invalid' }, 401)
 })`,
               question: 'このコードに含まれる脆弱性の組み合わせとして正しいものは？',
+              hint: '2箇所に注目してください: ①SQL文を「文字列連結」で組み立てている部分（emailに攻撃用文字列が入ったら？）②パスワードを「そのまま === で比較」している部分（DBに平文で保存されているという意味です）。',
               options: [
                 { text: 'SQLインジェクション + パスワード平文比較', correct: true, why: '正解！emailの文字列連結はSQLインジェクションを許し（例: emailに \' OR \'1\'=\'1 を入力）、passwordの平文比較はDBに平文保存されていることを意味します。bcrypt等のハッシュ比較が必須です。' },
                 { text: 'XSS + CSRF', correct: false, why: 'このコード片にはHTML出力（XSS）やフォーム送信（CSRF）の要素が含まれていません。' },
                 { text: '問題なし。正しく動作する', correct: false, why: '動作はしますが、2つの重大な脆弱性があります。本番には絶対に出せません。' },
                 { text: 'レースコンディションのみ', correct: false, why: 'ログイン処理にレースコンディションの問題はほぼありません。もっと根本的な問題があります。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'SQLインジェクションの「兆候」を検出する関数を書いてください。ユーザー入力の文字列を受け取り、シングルクォート(\')、ダブルハイフン(--)、セミコロン(;) のいずれかを含む場合は true（危険）、含まない場合は false を返します。',
+              functionName: 'detectSqlInjection',
+              signature: 'function detectSqlInjection(input)',
+              starterCode: `function detectSqlInjection(input) {
+  // ' と -- と ; のいずれかを含むか判定
+
+}`,
+              tests: [
+                { description: "' OR '1'='1 → true", script: "fn(\"' OR '1'='1\")", expected: 'true' },
+                { description: 'admin\'-- → true', script: 'fn("admin\'--")', expected: 'true' },
+                { description: '1; DROP TABLE → true', script: "fn('1; DROP TABLE users')", expected: 'true' },
+                { description: '普通の文字列 → false', script: "fn('tanaka@example.com')", expected: 'false' },
+              ],
+              hints: [
+                "input.includes(\"'\") || input.includes('--') || input.includes(';') を返す",
+                '「いずれかを含む」は ||（OR）でつなぐ。some() を使っても書ける',
+              ],
+              solution: `function detectSqlInjection(input) {
+  return input.includes("'") || input.includes('--') || input.includes(';')
+}`,
             },
           },
         ],
@@ -658,12 +682,39 @@ function canViewOrder(user, order) {
             ],
             quiz: {
               question: '本番DBのカラム名を変更したい。最も安全な手順は？',
+              hint: '「新旧どちらのコードが動いていても壊れない状態」を各ステップで維持できる手順を選びましょう。expand & contract（拡張してから縮小する）パターンがキーワードです。',
               options: [
                 { text: 'ALTER TABLEで直接リネームし、同時にコードもデプロイする', correct: false, why: 'デプロイの瞬間、旧コードと新スキーマ（またはその逆）が混在する時間が生まれ、エラーが発生します。' },
                 { text: '新カラム追加→両方書き込み→データ移行→コード切替→旧カラム削除、を段階的に行う', correct: true, why: '正解！expand & contractパターンです。各ステップが互換性を保つため、どの時点でもロールバック可能です。' },
                 { text: '深夜のメンテナンス時間にサービスを止めて一括変更する', correct: false, why: 'サービス停止はユーザー体験を損ないます。無停止で移行できる設計が現代の標準です。' },
                 { text: 'カラム名は変えず、コード側で別名として扱う', correct: false, why: '一時的な回避策としてはありですが、根本解決ではなく、技術的負債が残ります。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'expand & contract の移行手順をコードで表現します。現在のステップ名を受け取り、次のステップ名を返す関数を書いてください。順序: \'start\' → \'add-column\' → \'dual-write\' → \'backfill\' → \'switch-read\' → \'drop-column\' → \'done\'。\'done\' の次は \'done\' を返してください。',
+              functionName: 'nextMigrationStep',
+              signature: 'function nextMigrationStep(current)',
+              starterCode: `function nextMigrationStep(current) {
+  // ステップの配列を定義し、indexOf で現在地を調べて次を返す
+
+}`,
+              tests: [
+                { description: "'start' → 'add-column'", script: "fn('start')", expected: '"add-column"' },
+                { description: "'dual-write' → 'backfill'", script: "fn('dual-write')", expected: '"backfill"' },
+                { description: "'drop-column' → 'done'", script: "fn('drop-column')", expected: '"done"' },
+                { description: "'done' → 'done'", script: "fn('done')", expected: '"done"' },
+              ],
+              hints: [
+                "const steps = ['start','add-column','dual-write','backfill','switch-read','drop-column','done']",
+                'const i = steps.indexOf(current); return steps[i + 1] ?? \'done\'',
+              ],
+              solution: `function nextMigrationStep(current) {
+  const steps = ['start', 'add-column', 'dual-write', 'backfill', 'switch-read', 'drop-column', 'done']
+  const i = steps.indexOf(current)
+  if (i === -1) return 'start'
+  return steps[i + 1] ?? 'done'
+}`,
             },
           },
           {
@@ -683,6 +734,37 @@ function canViewOrder(user, order) {
               '証拠（ログ）確保が先、修正は後',
               'エスカレーション基準を予め決めておく',
             ],
+            quiz: {
+              question: '本番で障害アラートが発火。あなたの最初の行動として最も適切なものは？',
+              hint: '「まず直す」の罠を思い出してください。原因不明のまま修正を試みると、証拠（ログ）が消えて再発します。初動の型の①は何でしたか？',
+              options: [
+                { text: 'すぐにサーバーを再起動する', correct: false, why: '原因不明のまま再起動すると、ログやメモリダンプ等の証拠が失われ、根本原因の調査が不可能になります。' },
+                { text: '影響範囲（誰に・どの機能に・どの程度）を特定し、直近の変更（デプロイ等）を確認する', correct: true, why: '正解！障害の8割は直近の変更が起点です。影響の特定と変更の確認が最初の2手。証拠を確保してから暫定対応（ロールバック等）に進みます。' },
+                { text: '原因が分かるまで誰にも連絡せず調査に集中する', correct: false, why: '顧客影響がある障害で連絡を後回しにすると、被害が拡大します。エスカレーションは早いほど価値があります。' },
+                { text: 'コードの怪しい部分をその場で修正してデプロイする', correct: false, why: '検証なしの本番デプロイは二次障害を招きます。まず暫定対応で被害を止め、根本原因は落ち着いて調査します。' },
+              ],
+            },
+            codingChallenge: {
+              prompt:
+                '障害報告のテンプレ（何が・いつから・誰に影響・今の状態）を組み立てる関数を書いてください。引数は info = { what, since, impact, status }。戻り値は \'【障害報告】{what}が{since}から発生。影響: {impact}。現在: {status}\' の形式の文字列です。',
+              functionName: 'formatIncidentReport',
+              signature: 'function formatIncidentReport(info)',
+              starterCode: `function formatIncidentReport(info) {
+  // info.what / info.since / info.impact / info.status を埋め込む
+
+}`,
+              tests: [
+                { description: '基本的な組み立て', script: "fn({what:'決済エラー',since:'14:05',impact:'全ユーザーの約3割',status:'ロールバック実施中'})", expected: '"【障害報告】決済エラーが14:05から発生。影響: 全ユーザーの約3割。現在: ロールバック実施中"' },
+                { description: '別の内容でも組み立てられる', script: "fn({what:'ログイン失敗',since:'09:00',impact:'一部ユーザー',status:'調査中'})", expected: '"【障害報告】ログイン失敗が09:00から発生。影響: 一部ユーザー。現在: 調査中"' },
+              ],
+              hints: [
+                'テンプレートリテラル: return \`【障害報告】\${info.what}が\${info.since}から発生。...\`',
+                '文字列連結でも可: \'【障害報告】\' + info.what + \'が\' + ...',
+              ],
+              solution: `function formatIncidentReport(info) {
+  return \`【障害報告】\${info.what}が\${info.since}から発生。影響: \${info.impact}。現在: \${info.status}\`
+}`,
+            },
           },
         ],
       },
@@ -724,12 +806,41 @@ function canViewOrder(user, order) {
   }
 })`,
               question: 'このログ実装の問題として、最も重大なものは？',
+              hint: '2つの観点で見てみましょう: ①ログに「書いてはいけないもの」が書かれていないか（決済情報・秘密情報）②障害調査に「必要な情報」が足りているか（エラーの内容）。',
               options: [
                 { text: 'ログが日本語でない', correct: false, why: '言語は運用チームの慣習次第であり、重大な問題ではありません。' },
                 { text: 'カードトークンをログに出力している + エラーの内容を記録していない', correct: true, why: '正解！決済情報のログ出力はPCI DSS違反になり得る重大インシデントです。また「error happened」では原因調査が不可能。エラーオブジェクトの内容（e.message等）を記録する必要があります。' },
                 { text: 'console.logではなく専用ライブラリを使うべき', correct: false, why: '確かに改善点ですが、機密情報の漏洩リスクと比較すれば優先度は低いです。' },
                 { text: 'okというログが簡素すぎる', correct: false, why: '改善点ではありますが、致命的ではありません。' },
               ],
+            },
+            codingChallenge: {
+              prompt:
+                'ログのマスキング関数を実装してください。オブジェクトを受け取り、password / token / cardToken / secret というキーの値を \'***\' に置き換えた「新しいオブジェクト」を返してください。それ以外のキーはそのままコピーし、元のオブジェクトは変更しないでください。',
+              functionName: 'maskSecrets',
+              signature: 'function maskSecrets(logData)',
+              starterCode: `function maskSecrets(logData) {
+  // 秘密キーのリストを定義し、新しいオブジェクトにコピーしながら置き換える
+
+}`,
+              tests: [
+                { description: 'password がマスクされる', script: "fn({user:'taro',password:'abc123'}).password", expected: '"***"' },
+                { description: '秘密以外はそのまま', script: "fn({user:'taro',password:'abc123'}).user", expected: '"taro"' },
+                { description: 'cardToken もマスク', script: "fn({cardToken:'tok_123'}).cardToken", expected: '"***"' },
+                { description: '元オブジェクトを変更しない', script: "(() => { const d={password:'abc'}; fn(d); return d.password === 'abc' })()", expected: 'true' },
+              ],
+              hints: [
+                "const secretKeys = ['password', 'token', 'cardToken', 'secret']",
+                'const result = { ...logData } でコピーしてから、secretKeys をループして result[key] が存在すれば \'***\' に',
+              ],
+              solution: `function maskSecrets(logData) {
+  const secretKeys = ['password', 'token', 'cardToken', 'secret']
+  const result = { ...logData }
+  for (const key of secretKeys) {
+    if (key in result) result[key] = '***'
+  }
+  return result
+}`,
             },
           },
         ],
@@ -890,6 +1001,7 @@ for (const post of posts) {
 
 return c.json(posts)`,
               question: 'このコードの問題と適切な修正は？',
+              hint: 'クエリが「何回」実行されるか数えてみましょう。最初の1回（投稿50件）に加えて、ループ内で何回走りますか？ 「1本あたりの速さ」と「本数」のどちらが問題かがポイントです。',
               options: [
                 { text: '問題ない。50件なら許容範囲', correct: false, why: '51回のクエリは明確にN+1問題です。ユーザー増加時にDBへ線形に負荷がかかります。' },
                 { text: 'N+1問題。JOINまたはIN句で一括取得すべき', correct: true, why: '正解！例えば SELECT * FROM posts JOIN users ON posts.user_id = users.id で1回のクエリで取得できます。または投稿のuser_idを集めてIN句で一括取得します。' },
