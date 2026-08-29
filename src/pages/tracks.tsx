@@ -30,7 +30,7 @@ export const TrackListPage: FC = () => {
         <i class="fa-solid fa-book-open text-amber-400 mr-2"></i>カリキュラム
       </h1>
       <p class="text-gray-400 mb-10">
-        8つのトラックを体系的に。順番は自由ですが、AI時代トラックは全トラックの土台です。
+        {tracks.length}つのトラックを体系的に。未経験の方は「プログラミング基礎（入門）」から始めるのがおすすめです。
       </p>
 
       {(['tech', 'business', 'ai'] as const).map((cat) => (
