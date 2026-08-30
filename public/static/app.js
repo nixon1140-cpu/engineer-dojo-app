@@ -189,6 +189,46 @@
   }
 
   /* ========== コーディング演習（実際に書く→ブラウザ内でテスト実行） ========== */
+  // ユーザーコードの評価 + テスト実行を行う純粋関数。
+  // Web Worker 内でも同じロジックを使うため、外部の変数・関数を一切参照しない
+  // 自己完結した実装にしてある（toString() でソース文字列化し Worker に埋め込む）。
+  function evaluateCoding(code, fnName, testList) {
+    let fn
+    try {
+      fn = new Function(code + '\nreturn ' + fnName + ';')()
+    } catch (e) {
+      return { type: 'syntaxError', message: String((e && e.message) || e) }
+    }
+    if (typeof fn !== 'function') {
+      return { type: 'noFunction' }
+    }
+    const results = testList.map(function (t) {
+      let actual
+      let ok = false
+      let error = null
+      try {
+        actual = new Function('fn', 'return (' + t.script + ');')(fn)
+        ok = JSON.stringify(actual) === t.expected
+      } catch (e) {
+        error = String((e && e.message) || e)
+      }
+      let actualText = null
+      if (!ok && !error) {
+        if (actual === undefined) {
+          actualText = 'undefined'
+        } else {
+          try {
+            actualText = JSON.stringify(actual)
+          } catch (e2) {
+            actualText = String(actual)
+          }
+        }
+      }
+      return { description: t.description, ok: ok, error: error, expected: t.expected, actual: actualText }
+    })
+    return { type: 'done', results: results }
+  }
+
   document.querySelectorAll('.coding-challenge').forEach(function (block) {
     const editor = block.querySelector('.coding-editor')
     const runBtn = block.querySelector('.coding-run-btn')
@@ -240,53 +280,55 @@
       }
     })
 
-    runBtn.addEventListener('click', function () {
-      const code = editor.value
-      resultsEl.classList.remove('hidden')
+    // --- 実行結果の描画 ---
+    function renderSyntaxError(message) {
+      resultsEl.innerHTML =
+        '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
+        '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-bug mr-1"></i>構文エラー</p>' +
+        '<p class="text-gray-300 font-mono text-xs">' + escapeHtml(message) + '</p>' +
+        '<p class="text-gray-500 text-xs mt-2">コードの文法を確認してください（括弧の閉じ忘れ等）。</p></div>'
+    }
 
-      // 1. ユーザーコードを評価して関数を取得（fn として束縛）
-      let fn
-      try {
-        fn = new Function(code + '\nreturn ' + functionName + ';')()
-      } catch (e) {
-        resultsEl.innerHTML =
-          '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
-          '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-bug mr-1"></i>構文エラー</p>' +
-          '<p class="text-gray-300 font-mono text-xs">' + escapeHtml(String(e.message)) + '</p>' +
-          '<p class="text-gray-500 text-xs mt-2">コードの文法を確認してください（括弧の閉じ忘れ等）。</p></div>'
-        return
-      }
-      if (typeof fn !== 'function') {
-        resultsEl.innerHTML =
-          '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm text-gray-300">' +
-          '関数 <code class="text-amber-300">' + escapeHtml(functionName) + '</code> が定義されていません。関数名を変更しないでください。</div>'
-        return
-      }
+    function renderNoFunctionError() {
+      resultsEl.innerHTML =
+        '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm text-gray-300">' +
+        '関数 <code class="text-amber-300">' + escapeHtml(functionName) + '</code> が定義されていません。関数名を変更しないでください。</div>'
+    }
 
-      // 2. 各テストを実行（test.script 内で fn が使える）
+    function renderTimeoutError() {
+      resultsEl.innerHTML =
+        '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
+        '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-hourglass-half mr-1"></i>実行がタイムアウトしました（5秒）</p>' +
+        '<p class="text-gray-300">無限ループや非常に重い計算が原因の可能性があります。<strong class="text-red-300">実行は強制停止済みで、ブラウザは固まっていません。</strong>安心してコードを修正して再実行してください。</p>' +
+        '<ul class="text-xs text-gray-500 mt-2 space-y-1">' +
+        '<li>・while / for のループ条件が、いつかは成立しなくなるか確認する</li>' +
+        '<li>・ループ内でカウンタ変数（i など）を更新し忘れていないか確認する</li>' +
+        '</ul></div>'
+    }
+
+    function renderWorkerError(message) {
+      resultsEl.innerHTML =
+        '<div class="p-4 rounded-lg bg-red-400/10 border border-red-400/40 text-sm">' +
+        '<p class="font-bold text-red-400 mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>実行環境エラー</p>' +
+        '<p class="text-gray-300 font-mono text-xs">' + escapeHtml(message) + '</p></div>'
+    }
+
+    function renderTestResults(results) {
       let passed = 0
       let rows = ''
-      tests.forEach(function (t, i) {
-        let actual, ok, error = null
-        try {
-          actual = new Function('fn', 'return (' + t.script + ');')(fn)
-          ok = JSON.stringify(actual) === t.expected
-        } catch (e) {
-          ok = false
-          error = e.message
-        }
-        if (ok) passed++
+      results.forEach(function (t, i) {
+        if (t.ok) passed++
         rows +=
-          '<li class="flex gap-2 text-sm ' + (ok ? 'text-gray-300' : 'text-red-300') + '">' +
-          '<i class="fa-solid ' + (ok ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400') + ' mt-1 shrink-0"></i>' +
+          '<li class="flex gap-2 text-sm ' + (t.ok ? 'text-gray-300' : 'text-red-300') + '">' +
+          '<i class="fa-solid ' + (t.ok ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400') + ' mt-1 shrink-0"></i>' +
           '<span>テスト' + (i + 1) + ': ' + escapeHtml(t.description) +
-          (ok ? '' : '<br><span class="text-xs text-gray-500 font-mono">' +
-            (error ? '実行エラー: ' + escapeHtml(error) : '期待値: ' + escapeHtml(t.expected) + ' / 実際: ' + escapeHtml(JSON.stringify(actual))) +
+          (t.ok ? '' : '<br><span class="text-xs text-gray-500 font-mono">' +
+            (t.error ? '実行エラー: ' + escapeHtml(t.error) : '期待値: ' + escapeHtml(t.expected) + ' / 実際: ' + escapeHtml(t.actual == null ? 'undefined' : t.actual)) +
             '</span>') +
           '</span></li>'
       })
 
-      const allPassed = passed === tests.length
+      const allPassed = passed === results.length
       resultsEl.innerHTML =
         '<div class="p-4 rounded-lg border text-sm ' +
         (allPassed
@@ -295,8 +337,8 @@
         '">' +
         '<p class="font-bold mb-2 ' + (allPassed ? 'text-emerald-400' : 'text-amber-400') + '">' +
         (allPassed
-          ? '<i class="fa-solid fa-trophy mr-1"></i>全テスト合格！ ' + passed + '/' + tests.length
-          : '<i class="fa-solid fa-flask mr-1"></i>' + passed + ' / ' + tests.length + ' 件合格') +
+          ? '<i class="fa-solid fa-trophy mr-1"></i>全テスト合格！ ' + passed + '/' + results.length
+          : '<i class="fa-solid fa-flask mr-1"></i>' + passed + ' / ' + results.length + ' 件合格') +
         '</p>' +
         '<ul class="space-y-1.5">' + rows + '</ul>' +
         (allPassed
@@ -309,6 +351,90 @@
         window.Dojo.recordQuiz(lessonId + '-coding', true)
       }
       resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    function handleResult(res) {
+      if (!res) {
+        renderWorkerError('実行結果を受け取れませんでした。')
+      } else if (res.type === 'syntaxError') {
+        renderSyntaxError(res.message)
+      } else if (res.type === 'noFunction') {
+        renderNoFunctionError()
+      } else if (res.type === 'fatal') {
+        renderWorkerError(res.message)
+      } else {
+        renderTestResults(res.results)
+      }
+    }
+
+    // 無限ループ対策の実行タイムアウト
+    const RUN_TIMEOUT_MS = 5000
+
+    runBtn.addEventListener('click', function () {
+      const code = editor.value
+      resultsEl.classList.remove('hidden')
+
+      // ユーザーコードは Web Worker（別スレッド）で実行する。
+      // 無限ループが含まれていてもメインスレッド（画面）が固まらず、
+      // タイムアウト時に worker.terminate() で強制停止できる。
+      if (!window.Worker || !window.Blob || !window.URL || !window.URL.createObjectURL) {
+        handleResult(evaluateCoding(code, functionName, tests))
+        return
+      }
+
+      runBtn.disabled = true
+      const originalLabel = runBtn.innerHTML
+      runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>実行中…（最大5秒）'
+
+      let worker = null
+      let objectUrl = null
+      let settled = false
+      const timer = setTimeout(function () {
+        finish('timeout')
+      }, RUN_TIMEOUT_MS)
+
+      function cleanup() {
+        clearTimeout(timer)
+        if (worker) worker.terminate()
+        if (objectUrl) URL.revokeObjectURL(objectUrl)
+        runBtn.disabled = false
+        runBtn.innerHTML = originalLabel
+      }
+
+      function finish(kind, payload) {
+        if (settled) return
+        settled = true
+        cleanup()
+        if (kind === 'timeout') renderTimeoutError()
+        else if (kind === 'workerError') renderWorkerError(payload)
+        else handleResult(payload)
+      }
+
+      try {
+        // evaluateCoding のソースを文字列化して Worker に渡す（別ファイル不要）
+        const source =
+          'var evaluateCoding = ' + evaluateCoding.toString() + ';\n' +
+          'self.onmessage = function (e) {\n' +
+          '  var d = e.data;\n' +
+          '  try {\n' +
+          '    self.postMessage(evaluateCoding(d.code, d.fnName, d.tests));\n' +
+          '  } catch (err) {\n' +
+          '    self.postMessage({ type: "fatal", message: String((err && err.message) || err) });\n' +
+          '  }\n' +
+          '};'
+        objectUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }))
+        worker = new Worker(objectUrl)
+        worker.onmessage = function (e) { finish('result', e.data) }
+        worker.onerror = function (e) { finish('workerError', String((e && e.message) || '不明なエラー')) }
+        worker.postMessage({ code: code, fnName: functionName, tests: tests })
+      } catch (e) {
+        // Worker を起動できない環境では同期実行にフォールバック
+        if (!settled) {
+          settled = true
+          cleanup()
+        }
+        handleResult(evaluateCoding(code, functionName, tests))
+      }
     })
   })
 
