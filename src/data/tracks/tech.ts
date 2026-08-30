@@ -1029,6 +1029,160 @@ ORDER BY p.id;`,
           },
         ],
       },
+      {
+        id: 'db-sql',
+        title: '第2章: SQL実践ステップ（ブラウザで書ける）',
+        description:
+          'SELECT → 集計 → JOIN の順に、ブラウザ内SQLiteで手を動かして覚える。環境構築は不要です。',
+        lessons: [
+          {
+            id: 'db-2-1',
+            title: 'SELECTの基本: 絞り込み・並び替え・上限',
+            minutes: 15,
+            intro:
+              'SQLの仕事の8割は「必要な行だけを、必要な順番で取り出す」ことです。WHERE・ORDER BY・LIMIT の3つだけで、実務のクエリの土台が組めます。',
+            content: [
+              '**SELECT** は「どの列を取るか」、**FROM** は「どのテーブルから取るか」、**WHERE** は「どの行に絞るか」を指定します: `SELECT name, price FROM products WHERE price >= 1000`。',
+              '**ORDER BY** で並び替えます: `ORDER BY price DESC` は価格の大きい順（DESC）。小さい順は ASC で、省略すると ASC になります。',
+              '**LIMIT** で件数の上限を決めます: `LIMIT 3` で先頭3件だけ。「ランキング上位3件」のような要件は ORDER BY + LIMIT の組み合わせです。',
+              '書く順番は決まっています: `SELECT → FROM → WHERE → ORDER BY → LIMIT`。この順番を入れ替えると構文エラーになる、初学者が最初にハマるポイントです。',
+              '条件の組み合わせは AND / OR が使えます: `WHERE price >= 1000 AND stock > 0`。文字列の比較はシングルクォートで囲みます: `WHERE category = \'food\'`。',
+            ],
+            points: [
+              'SELECT（列）→ FROM（表）→ WHERE（行）の順で考える',
+              '並び替えは ORDER BY ... DESC/ASC、上位N件は LIMIT',
+              '句の書く順番は固定（SELECT→FROM→WHERE→ORDER BY→LIMIT）',
+            ],
+            quiz: {
+              question: '「価格1000円以上の商品を、価格の高い順に3件」取得したい。正しい句の順番は？',
+              hint: 'SQLの句には決まった書き順があります。「どの表から → どの行に絞って → どう並べて → 何件取るか」の流れです。',
+              options: [
+                { text: 'FROM → WHERE → ORDER BY → LIMIT', correct: true, why: '正解！SELECT の後は FROM（表）→ WHERE（絞込）→ ORDER BY（並替）→ LIMIT（件数）の順が決まりです。この順番は「SQLの実行の論理的な流れ」とも対応しています。' },
+                { text: 'WHERE → FROM → LIMIT → ORDER BY', correct: false, why: 'FROM（どの表か）より先に WHERE は書けません。また LIMIT は最後です。' },
+                { text: 'FROM → ORDER BY → WHERE → LIMIT', correct: false, why: 'ORDER BY は WHERE の後です。先に行を絞ってから並び替える、という順番です。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'はじめてのSQL演習です。products テーブルから「価格が1000円以上の商品」を、価格の高い順に3件まで取得してください。取得する列は商品名（name）と価格（price）の2列です。',
+              schemaSql: `CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, category TEXT, price INTEGER, stock INTEGER);`,
+              seedSql: `INSERT INTO products VALUES
+  (1, 'りんご', 'food', 150, 50),
+  (2, 'ノートPC', 'electronics', 89800, 5),
+  (3, 'マウス', 'electronics', 2980, 30),
+  (4, 'コーヒー豆', 'food', 1200, 20),
+  (5, 'キーボード', 'electronics', 5500, 15),
+  (6, 'お茶', 'food', 800, 40),
+  (7, 'モニター', 'electronics', 24800, 8);`,
+              solutionSql: `SELECT name, price
+FROM products
+WHERE price >= 1000
+ORDER BY price DESC
+LIMIT 3;`,
+              hints: [
+                'WHERE price >= 1000 で価格1000円以上に絞り込む',
+                'ORDER BY price DESC で価格の高い順に並べる（DESC = 降順）',
+                '最後に LIMIT 3 で先頭3件に絞る。句の順番は SELECT → FROM → WHERE → ORDER BY → LIMIT',
+              ],
+            },
+          },
+          {
+            id: 'db-2-2',
+            title: '集計とGROUP BY: データを「まとめて」見る',
+            minutes: 20,
+            intro:
+              '「ステータスごとの注文数は？」「月ごとの売上は？」——ビジネスの問いの多くは「まとめて数える」処理です。GROUP BY と集計関数は、エンジニアがビジネス側と対話するための共通言語です。',
+            content: [
+              '**集計関数**: `COUNT(*)`（件数）、`SUM(列)`（合計）、`AVG(列)`（平均）、`MAX/MIN`（最大/最小）。`SELECT COUNT(*) FROM orders` で全件数が取れます。',
+              '**GROUP BY** は「グループごとに集計する」指示です: `SELECT status, COUNT(*) FROM orders GROUP BY status` で「ステータスごとの件数」になります。',
+              'SELECT に書けるのは「GROUP BY に指定した列」か「集計関数」だけです。グループ化していない列（例: 個々の amount）を混ぜると、意味が曖昧になりエラーになるDBがほとんどです。',
+              '**WHERE と HAVING の違い**が重要です: WHERE は「グループ化する前の行」を絞り、HAVING は「グループ化した後の結果」を絞ります。「注文数2件以上のステータスだけ」は HAVING の仕事です。',
+              '実行の論理順序を意識しましょう: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY。WHERE に集計関数は書けない、と覚えると間違いが減ります。',
+            ],
+            points: [
+              'COUNT / SUM / AVG / MAX / MIN が集計の基本5本',
+              'GROUP BY でグループごとに集計',
+              '絞込は「前」ならWHERE、「集計後」ならHAVING',
+            ],
+            quiz: {
+              question: '「注文数が2件以上のステータスだけ」を取得したい。条件はどこに書く？',
+              hint: '「注文数（COUNT）」はグループ化した「後」に分かる値です。グループ化後の結果を絞る専用の句があります。',
+              options: [
+                { text: 'WHERE count >= 2', correct: false, why: 'WHERE はグループ化「前」の行を絞る場所なので、COUNT(*) のような集計結果は使えません（エラーになります）。' },
+                { text: 'HAVING COUNT(*) >= 2', correct: true, why: '正解！HAVING は GROUP BY で集計した「後」の結果を絞る句です。「集計値で絞りたい」ときは HAVING、と覚えましょう。' },
+                { text: 'ORDER BY count >= 2', correct: false, why: 'ORDER BY は並び替え専用で、絞り込みはできません。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'orders テーブルから「ステータス（status）ごとの注文数」を、注文数の多い順に取得してください。ただし注文数が2件以上のステータスのみ対象とします（HAVING を使用）。列は status と注文数（count）です。',
+              schemaSql: `CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT, amount INTEGER);`,
+              seedSql: `INSERT INTO orders VALUES
+  (1, 'shipped', 3000), (2, 'pending', 1500), (3, 'shipped', 2000),
+  (4, 'cancelled', 4500), (5, 'shipped', 800), (6, 'pending', 2300),
+  (7, 'shipped', 1200), (8, 'pending', 900);`,
+              solutionSql: `SELECT status, COUNT(*) AS count
+FROM orders
+GROUP BY status
+HAVING COUNT(*) >= 2
+ORDER BY count DESC;`,
+              hints: [
+                'GROUP BY status でステータスごとにグループ化し、COUNT(*) で件数を数える',
+                '「2件以上のみ」は集計後の条件なので WHERE ではなく HAVING COUNT(*) >= 2',
+                'ORDER BY count DESC で多い順（count は AS で付けた別名）',
+              ],
+            },
+          },
+          {
+            id: 'db-2-3',
+            title: 'JOINとLEFT JOIN: テーブルをまたいで集計する',
+            minutes: 20,
+            intro:
+              '実務のデータは複数テーブルに分かれています。「ユーザー名つきの売上一覧」のように、テーブルを「繋ぐ」JOIN は、SQLの実用度を一気に引き上げる最重要トピックです。',
+            content: [
+              '**JOIN（内部結合）** は、両方のテーブルに対応する行がある組み合わせだけを取り出します: `FROM users u JOIN orders o ON o.user_id = u.id`。ON に書くのが「結合条件」です。',
+              '**LEFT JOIN（左外部結合）** は、左側のテーブルの行を「すべて」残します。右側に対応行がなければ NULL になります。「注文が0件のユーザーも一覧に出したい」ときに必須です。',
+              'テーブルには **別名（エイリアス）** を付けるのが実務標準です: `users u` のように短くすると、`u.name` `o.amount` と書けてクエリが読みやすくなります。',
+              'JOIN と GROUP BY の組み合わせが定番です: 「ユーザーごとの注文数」= users と orders を結合 → ユーザーでグループ化 → COUNT。第1章の演習もこの形でした。',
+              'LEFT JOIN で「件数」を数えるときは `COUNT(*)` ではなく `COUNT(o.id)` を使います。COUNT(*) は行そのものを数えるため注文0件でも1と数えてしまい、COUNT(列) は NULL を数えないため正しく0になります。',
+            ],
+            points: [
+              'JOIN = 両方にある行だけ、LEFT JOIN = 左の全行を保持',
+              'テーブル別名（users u）でクエリを短く読みやすく',
+              'LEFT JOIN の件数は COUNT(o.id)（COUNT(*) だと0件が1になる）',
+            ],
+            quiz: {
+              question: '「注文が0件のユーザーも含めて、全ユーザーの注文数」を出したい。適切な結合は？',
+              hint: '「0件の人も残す」= 片方のテーブルに対応行がなくても行を消さない結合方式が必要です。',
+              options: [
+                { text: 'JOIN（内部結合）で結び、COUNT(*) で数える', correct: false, why: '内部結合は「両方に存在する行」しか残らないため、注文0件のユーザーが一覧から消えてしまいます。' },
+                { text: 'LEFT JOIN で結び、COUNT(o.id) で数える', correct: true, why: '正解！LEFT JOIN は左（users）の全行を保持し、注文がないユーザーは o.id が NULL になります。COUNT(o.id) は NULL を数えないので、正しく 0 件になります。' },
+                { text: 'LEFT JOIN で結び、COUNT(*) で数える', correct: false, why: 'LEFT JOIN は正しいですが、COUNT(*) は「行」を数えるため、注文0件のユーザーも 1 と数えてしまいます。COUNT(o.id) を使いましょう。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                '最終演習です。users テーブルと orders テーブルを LEFT JOIN して、「全ユーザーの注文数」を取得してください。要件: ①注文が0件のユーザーも結果に含める ②列はユーザー名（name）と注文数（order_count） ③注文数の多い順、同数ならユーザーIDの昇順。',
+              schemaSql: `CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount INTEGER);`,
+              seedSql: `INSERT INTO users VALUES (1, '田中'), (2, '佐藤'), (3, '鈴木'), (4, '高橋');
+INSERT INTO orders VALUES
+  (1, 1, 3000), (2, 2, 1500), (3, 1, 2000),
+  (4, 2, 4500), (5, 1, 800), (6, 3, 1200);`,
+              solutionSql: `SELECT u.name AS name, COUNT(o.id) AS order_count
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+GROUP BY u.id, u.name
+ORDER BY order_count DESC, u.id;`,
+              hints: [
+                'FROM users u LEFT JOIN orders o ON o.user_id = u.id で「ユーザー全員」を残す',
+                '件数は COUNT(*) ではなく COUNT(o.id)（注文なし= NULL を0件にするため）',
+                'GROUP BY u.id, u.name でユーザーごとに集計。並び順は ORDER BY order_count DESC, u.id',
+              ],
+            },
+          },
+        ],
+      },
     ],
   },
 ]
