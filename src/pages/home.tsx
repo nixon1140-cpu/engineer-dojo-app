@@ -116,6 +116,92 @@ export const HomePage: FC = () => {
         </div>
       </section>
 
+      {/* 学習ロードマップ */}
+      <section id="roadmap-section" class="max-w-6xl mx-auto px-4 py-16">
+        <h2 class="text-2xl font-bold mb-2 text-center">
+          <i class="fa-solid fa-map text-amber-400 mr-2"></i>学習ロードマップ
+        </h2>
+        <p class="text-gray-400 text-center mb-10 max-w-2xl mx-auto leading-relaxed">
+          この道場は「入口」と「土台」です。ここで基礎と判断力を身につけたら、
+          次は<strong class="text-gray-200">自分の手で実際に作る</strong>ステージへ進みましょう。
+        </p>
+        <div class="grid md:grid-cols-4 gap-4">
+          {[
+            {
+              step: 'STEP 1',
+              title: '入門で基礎体力',
+              icon: 'fa-seedling',
+              place: 'この道場',
+              desc: '「プログラミング基礎（入門）」で変数・分岐・関数をブラウザ内演習で習得。エラーの読み方もここで。',
+            },
+            {
+              step: 'STEP 2',
+              title: '技術・視点の土台',
+              icon: 'fa-layer-group',
+              place: 'この道場',
+              desc: 'フロント〜DBの技術トラックとビジネス視点、AI時代の判断力を学び、シナリオで現場の判断を疑似体験。',
+            },
+            {
+              step: 'STEP 3',
+              title: '実際に作ってみる',
+              icon: 'fa-hammer',
+              place: '道場の外',
+              desc: '自分のPCに環境構築し、小さなアプリを0から作る。Git/GitHubでコードを公開してポートフォリオに。',
+            },
+            {
+              step: 'STEP 4',
+              title: '実践で磨く',
+              icon: 'fa-briefcase',
+              place: '道場の外',
+              desc: 'インターン・個人開発・コミュニティで、本物のコードレビューとチーム開発を経験する。',
+            },
+          ].map((s, i) => (
+            <div class="relative">
+              <div
+                class={`bg-dojo-800 border rounded-xl p-5 h-full ${
+                  s.place === 'この道場' ? 'border-amber-400/40' : 'border-dojo-700'
+                }`}
+              >
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold text-amber-400 tracking-wider">{s.step}</span>
+                  <span
+                    class={`text-xs px-2 py-0.5 rounded ${
+                      s.place === 'この道場'
+                        ? 'bg-amber-400/15 text-amber-300'
+                        : 'bg-dojo-700 text-gray-400'
+                    }`}
+                  >
+                    {s.place}
+                  </span>
+                </div>
+                <div class="text-2xl text-amber-400 mb-3">
+                  <i class={`fa-solid ${s.icon}`}></i>
+                </div>
+                <h3 class="font-bold mb-2">{s.title}</h3>
+                <p class="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
+              </div>
+              {i < 3 && (
+                <div class="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 z-10 text-amber-400">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <p class="text-xs text-gray-500 text-center mt-8 leading-relaxed">
+          ※ この道場の全コンテンツは約12時間分。一人前の土台を効率よく作るためのもので、
+          これだけで「完成」ではありません。STEP 3以降の実践経験と組み合わせてください。
+        </p>
+        <div class="text-center mt-6">
+          <a
+            href="/tracks/beginner"
+            class="inline-block bg-amber-400 text-dojo-950 font-bold px-8 py-3 rounded-lg hover:bg-amber-300 transition text-sm"
+          >
+            <i class="fa-solid fa-seedling mr-2"></i>STEP 1: 入門トラックから始める
+          </a>
+        </div>
+      </section>
+
       {/* こんな人に */}
       <section id="audience-section" class="max-w-6xl mx-auto px-4 py-16">
         <div class="bg-dojo-800 border border-dojo-700 rounded-2xl p-8 md:p-12">
