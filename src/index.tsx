@@ -7,6 +7,7 @@ import { TrackListPage, TrackDetailPage } from './pages/tracks'
 import { LessonPage } from './pages/lesson'
 import { ScenarioListPage, ScenarioPlayPage } from './pages/scenarios'
 import { DashboardPage } from './pages/dashboard'
+import { GlossaryPage } from './pages/glossary'
 
 const app = new Hono()
 
@@ -42,6 +43,9 @@ app.get('/scenarios/:id', (c) => {
 
 // ダッシュボード
 app.get('/dashboard', (c) => c.render(<DashboardPage />, { title: '学習の進捗' }))
+
+// 用語集
+app.get('/glossary', (c) => c.render(<GlossaryPage />, { title: '用語集' }))
 
 // API（進捗データはクライアント側localStorage管理。コンテンツ参照用の軽量API）
 app.get('/api/curriculum', (c) => {
