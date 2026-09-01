@@ -5,12 +5,12 @@ import type { FC } from 'hono/jsx'
 type GlossaryTerm = {
   term: string
   kana: string
-  category: '基礎' | '技術' | 'DB' | 'ビジネス' | 'AI時代'
+  category: '基礎' | '技術' | 'DB' | 'Git' | 'ビジネス' | 'AI時代'
   desc: string
   example?: string
 }
 
-const categories = ['基礎', '技術', 'DB', 'ビジネス', 'AI時代'] as const
+const categories = ['基礎', '技術', 'DB', 'Git', 'ビジネス', 'AI時代'] as const
 
 const terms: GlossaryTerm[] = [
   // 基礎
@@ -35,6 +35,15 @@ const terms: GlossaryTerm[] = [
   { term: 'トランザクション', kana: 'とらんざくしょん', category: 'DB', desc: '複数の更新を「全部成功 or 全部取り消し」の1単位にまとめる仕組み。在庫引当と注文作成のように、中途半端だと困る処理に必須。' },
   { term: 'JOIN / LEFT JOIN', kana: 'じょいん / れふとじょいん', category: 'DB', desc: 'テーブル同士を結合して取り出す。JOINは両方にある行のみ、LEFT JOINは左側の全行を保持（対応なしはNULL）。' },
   { term: 'GROUP BY / HAVING', kana: 'ぐるーぷばい / はびんぐ', category: 'DB', desc: 'グループごとの集計と、集計「後」の絞り込み。WHEREは集計「前」の行を絞る、と対で覚える。' },
+  // Git
+  { term: 'コミット', kana: 'こみっと', category: 'Git', desc: '変更をリポジトリに記録する操作。スナップショットとして保存され、いつでも過去の状態に戻れる。メッセージで「何を変えたか」を記録する。', example: 'git commit -m "ログイン機能を追加"' },
+  { term: 'ブランチ', kana: 'ぶらんち', category: 'Git', desc: 'メインの開発ラインから分岐した作業空間。「どのコミットを指しているか」のポインタ。feature/〇〇 のように機能名をつけるのが慣例。', example: 'git branch feature/login' },
+  { term: 'マージ', kana: 'まーじ', category: 'Git', desc: '2つのブランチを統合する操作。変更を取り込まれる側（main など）に向けて実行する。コンフリクトがあれば手動解消が必要。', example: 'git merge feature/login' },
+  { term: 'リモート', kana: 'りもーと', category: 'Git', desc: 'GitHub など、ネット上に置いたリポジトリの別名。通常 `origin` という名前を付ける。`git push` で送信、`git pull` で取り込む。', example: 'git remote add origin https://github.com/...' },
+  { term: 'コンフリクト', kana: 'こんふりくと', category: 'Git', desc: '2つのブランチで同じファイルの同じ行を変えたとき、Gitが「どちらを採用すべきか」判断できない状態。`<<<<<<` `=======` `>>>>>>` のマーカーで表示される。手動で正しい内容に書き換えてから `git add` と `git commit` で解消する。' },
+  { term: 'プルリクエスト（PR）', kana: 'ぷるりくえすと', category: 'Git', desc: 'GitHubなどで「このブランチをマージしてください」と提案しコードレビューを受ける仕組み。チーム開発での品質確保の要。レビュー→承認→マージの流れが標準。' },
+  { term: 'stash', kana: 'すたっしゅ', category: 'Git', desc: '作業途中の変更を一時退避させるコマンド。`git stash` で隠し、`git stash pop` で復元する。別ブランチに切り替える前に変更を中断したい場合に便利。', example: 'git stash / git stash pop' },
+  { term: '.gitignore', kana: 'ぎっといぐのあ', category: 'Git', desc: 'Gitで管理しないファイル・フォルダを指定するファイル。node_modules/ や .env（秘密鍵）などを除外する。プロジェクトのルートに配置する。', example: 'node_modules/\n.env\n*.log' },
   // ビジネス
   { term: 'ファネル', kana: 'ふぁねる', category: 'ビジネス', desc: '認知→訪問→登録→購入のように、ユーザーが段階を経るごとに減っていく漏斗（ろうと）状のモデル。どこで離脱するか分析する。' },
   { term: '技術的負債', kana: 'ぎじゅつてきふさい', category: 'ビジネス', desc: '「急いで作った歪み」の蓄積。放置すると開発速度が下がる。経営には「将来の利息が増える借金」として説明する。' },

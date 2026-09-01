@@ -17,7 +17,7 @@ export const DashboardPage: FC = () => {
       </p>
 
       {/* 全体サマリー */}
-      <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="bg-dojo-800 border border-dojo-700 rounded-xl p-5 text-center">
           <p class="text-3xl font-black text-amber-400" id="stat-lessons">0</p>
           <p class="text-xs text-gray-400 mt-1">完了レッスン / {lessonTotal}</p>
@@ -29,6 +29,28 @@ export const DashboardPage: FC = () => {
         <div class="bg-dojo-800 border border-dojo-700 rounded-xl p-5 text-center">
           <p class="text-3xl font-black text-amber-400" id="stat-scenarios">0</p>
           <p class="text-xs text-gray-400 mt-1">クリアしたシナリオ / {scenarios.length}</p>
+        </div>
+      </div>
+
+      {/* スキルチェック統計 */}
+      <div class="grid grid-cols-3 gap-4 mb-10">
+        <div class="bg-emerald-400/10 border border-emerald-400/30 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-emerald-400" id="stat-skill-ok">0</p>
+          <p class="text-xs text-gray-400 mt-1">
+            <i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i>できる
+          </p>
+        </div>
+        <div class="bg-amber-400/10 border border-amber-400/30 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-amber-400" id="stat-skill-partial">0</p>
+          <p class="text-xs text-gray-400 mt-1">
+            <i class="fa-solid fa-circle-half-stroke text-amber-400 mr-1"></i>だいたいできる
+          </p>
+        </div>
+        <div class="bg-rose-400/10 border border-rose-400/30 rounded-xl p-4 text-center">
+          <p class="text-2xl font-black text-rose-400" id="stat-skill-weakness">0</p>
+          <p class="text-xs text-gray-400 mt-1">
+            <i class="fa-solid fa-circle-xmark text-rose-400 mr-1"></i>弱点（できない）
+          </p>
         </div>
       </div>
 

@@ -8,6 +8,8 @@ import { LessonPage } from './pages/lesson'
 import { ScenarioListPage, ScenarioPlayPage } from './pages/scenarios'
 import { DashboardPage } from './pages/dashboard'
 import { GlossaryPage } from './pages/glossary'
+import { DailyQuizPage } from './pages/daily-quiz'
+import { WeaknessMapPage } from './pages/weakness-map'
 
 const app = new Hono()
 
@@ -46,6 +48,12 @@ app.get('/dashboard', (c) => c.render(<DashboardPage />, { title: '学習の進�
 
 // 用語集
 app.get('/glossary', (c) => c.render(<GlossaryPage />, { title: '用語集' }))
+
+// デイリークイズ
+app.get('/daily-quiz', (c) => c.render(<DailyQuizPage />, { title: 'デイリークイズ' }))
+
+// 弱点マップ
+app.get('/weakness-map', (c) => c.render(<WeaknessMapPage />, { title: '弱点マップ' }))
 
 // API（進捗データはクライアント側localStorage管理。コンテンツ参照用の軽量API）
 app.get('/api/curriculum', (c) => {

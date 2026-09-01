@@ -3,10 +3,23 @@ import { beginnerTracks } from './tracks/beginner'
 import { techTracks } from './tracks/tech'
 import { businessTracks } from './tracks/business'
 import { aiTracks } from './tracks/ai-era'
+import { gitTracks } from './tracks/git'
+import { httpTracks } from './tracks/http'
+import { testingTracks } from './tracks/testing'
+import { practiceTracks } from './tracks/practice'
 import { scenarios } from './scenarios'
 
 // 入門トラックを先頭に配置（初学者はここから始める）
-export const tracks: Track[] = [...beginnerTracks, ...techTracks, ...businessTracks, ...aiTracks]
+export const tracks: Track[] = [
+  ...beginnerTracks,
+  ...techTracks,
+  ...gitTracks,
+  ...httpTracks,
+  ...testingTracks,
+  ...practiceTracks,
+  ...businessTracks,
+  ...aiTracks,
+]
 export { scenarios }
 
 export function getTrack(id: string): Track | undefined {

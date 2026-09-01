@@ -1183,6 +1183,173 @@ ORDER BY order_count DESC, u.id;`,
           },
         ],
       },
+      {
+        id: 'db-sql-advanced',
+        title: '第3章: SQL応用（サブクエリ・複合JOIN）',
+        description:
+          '「平均以上を絞り込む」「3テーブルを一度に結合する」など、実務でよく見るSQL応用パターンを習得する。',
+        lessons: [
+          {
+            id: 'db-3-1',
+            title: 'サブクエリ: SQLの中にSQLを入れる',
+            minutes: 20,
+            intro:
+              '「平均より高い商品だけを取り出したい」——この条件、WHERE に直接 AVG() は書けません。サブクエリ（副問い合わせ）で解決するパターンは実務で頻出です。',
+            content: [
+              '**サブクエリ** とは、SQLの中に書いた別のSELECT文のことです。`WHERE amount > (SELECT AVG(amount) FROM orders)` のように、括弧の中にSELECTを書きます。',
+              'WHERE に集計関数（AVG・SUM など）を直接書けない理由: WHERE は行を1行ずつ評価しますが、AVG は全行をまとめて計算するため、評価のタイミングが合いません。HAVING も使えますが、サブクエリの方が柔軟に使えます。',
+              'サブクエリは **スカラーサブクエリ**（1値を返す）と **テーブルサブクエリ**（複数行を返し IN 句などで使う）の2種類があります。`WHERE id IN (SELECT id FROM ...)` もよく使うパターンです。',
+              '**パフォーマンス**: サブクエリは毎行評価されることがあるため、大きなテーブルでは遅くなることがあります。同じ結果をJOINで書けることが多く、JOINのほうが高速な場合があります。まず動くクエリを書き、必要に応じて最適化しましょう。',
+            ],
+            points: [
+              'WHERE 節の中に `(SELECT ...)` で計算結果を使える',
+              'スカラーサブクエリ（1値）と IN 用サブクエリ（複数値）の2パターン',
+              '大きなテーブルでは JOIN の書き換えを検討する',
+            ],
+            quiz: {
+              question: '`WHERE price > (SELECT AVG(price) FROM products)` はどんな行を取り出す？',
+              hint: 'サブクエリ部分 `(SELECT AVG(price) FROM products)` は何を返しますか？',
+              options: [
+                {
+                  text: '全商品の平均価格より高い価格の商品',
+                  correct: true,
+                  why: '正解！`(SELECT AVG(price) FROM products)` は全商品の平均価格（スカラー値）を返します。WHERE 節でその値より大きい行だけに絞ります。',
+                },
+                {
+                  text: '最も高い価格の商品1件',
+                  correct: false,
+                  why: '最も高い価格の1件を取るなら `ORDER BY price DESC LIMIT 1` です。サブクエリで平均を計算して比較するのは、平均「以上」の全件取得です。',
+                },
+                {
+                  text: 'エラーになる（WHERE に集計関数は使えない）',
+                  correct: false,
+                  why: 'WHERE 節に集計関数（AVG）を **直接** 書くのはエラーですが、サブクエリで括弧に包めば使えます。サブクエリの評価結果はスカラー値として使えます。',
+                },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'orders テーブルから「平均注文金額より高い注文」を取り出してください。要件: ①列は id, user_id, amount ②金額の大きい順 ③サブクエリ（`WHERE amount > (SELECT AVG(amount) ...)`）を使うこと。',
+              schemaSql: `CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, amount INTEGER);`,
+              seedSql: `INSERT INTO orders VALUES (1, 1, 3000), (2, 2, 1500), (3, 3, 5000), (4, 1, 2000), (5, 2, 4000), (6, 3, 800);`,
+              solutionSql: `SELECT id, user_id, amount
+FROM orders
+WHERE amount > (SELECT AVG(amount) FROM orders)
+ORDER BY amount DESC;`,
+              hints: [
+                '`WHERE amount > (SELECT AVG(amount) FROM orders)` の形で書く',
+                '全体平均は約2716円。これより高い注文は3000, 4000, 5000 の3件',
+                '並び順は ORDER BY amount DESC（大きい順）',
+              ],
+            },
+          },
+          {
+            id: 'db-3-2',
+            title: 'GROUP BY応用: HAVING で集計後に絞り込む',
+            minutes: 20,
+            intro:
+              '「カテゴリ別の平均価格が1000円以上のカテゴリだけ」——これは集計「後」の絞り込みで、HAVINGが必要です。COUNT以外の集計関数をHAVINGで使うパターンを習得しましょう。',
+            content: [
+              'HAVING は GROUP BY でグループ化した後の集計結果に条件を付けます。WHERE が「グループ化前」、HAVING が「グループ化後」と明確に区別して覚えましょう。',
+              '`HAVING AVG(price) >= 1000` のように、AVG・SUM・MAXなど任意の集計関数を条件に使えます。`WHERE AVG(price) >= 1000` はエラーになります。',
+              'SELECT 節で集計列に **別名（AS）** を付けると、ORDER BY でその別名が使えます: `SELECT AVG(price) AS avg_price ... ORDER BY avg_price DESC`。ただし SQLite では HAVING 節でも別名が使えますが、他のDBでは使えないことがあります。',
+              '複数の集計関数を同時に取得できます: `SELECT category, COUNT(*) AS cnt, AVG(price) AS avg` のように1クエリで複数の集計値を出力できます。',
+            ],
+            points: [
+              'HAVING は GROUP BY 後の集計結果を絞る（WHERE は集計前）',
+              'AVG・SUM・MAX などどの集計関数でも HAVING に書ける',
+              '集計列に AS で別名を付けると ORDER BY で使いやすくなる',
+            ],
+            quiz: {
+              question: 'カテゴリ別の件数を取得し、「件数が3以上のカテゴリ」だけ出すSQLの正しい書き方は？',
+              hint: '「件数が3以上」という条件は、グループ化の前と後どちらの絞り込みでしょうか？',
+              options: [
+                {
+                  text: 'GROUP BY category HAVING COUNT(*) >= 3',
+                  correct: true,
+                  why: '正解！COUNT(*) は集計関数なので GROUP BY の後でしか分かりません。集計後の絞り込みは HAVING を使います。',
+                },
+                {
+                  text: 'WHERE COUNT(*) >= 3 GROUP BY category',
+                  correct: false,
+                  why: 'WHERE 節に集計関数 COUNT(*) は書けません（エラー）。WHERE はグループ化前の行を絞るため、集計結果はまだ計算されていません。',
+                },
+                {
+                  text: 'GROUP BY category ORDER BY COUNT(*) >= 3',
+                  correct: false,
+                  why: 'ORDER BY は並び替えの指定で、条件絞り込みには使えません。条件絞り込みに HAVING を使います。',
+                },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                'products テーブルから「カテゴリ別の商品数と平均価格」を、平均価格1000円以上のカテゴリのみ、平均価格の高い順で取得してください。列は category, item_count（商品数）, avg_price（平均価格）です。',
+              schemaSql: `CREATE TABLE products (id INTEGER PRIMARY KEY, category TEXT, price INTEGER);`,
+              seedSql: `INSERT INTO products VALUES
+  (1, 'food', 150), (2, 'food', 1200), (3, 'food', 800),
+  (4, 'electronics', 89800), (5, 'electronics', 2980), (6, 'electronics', 5500),
+  (7, 'book', 1500), (8, 'book', 2000);`,
+              solutionSql: `SELECT category, COUNT(*) AS item_count, AVG(price) AS avg_price
+FROM products
+GROUP BY category
+HAVING AVG(price) >= 1000
+ORDER BY avg_price DESC;`,
+              hints: [
+                'GROUP BY category でカテゴリごとに集計',
+                '「平均価格1000円以上」は HAVING AVG(price) >= 1000（WHERE ではなく HAVING）',
+                'COUNT(*) AS item_count, AVG(price) AS avg_price で2つの集計値を同時に取得',
+              ],
+            },
+          },
+          {
+            id: 'db-3-3',
+            title: '3テーブル結合: 複数テーブルをまたぐ集計',
+            minutes: 25,
+            intro:
+              '実務のDBは「顧客・注文・商品」のように3テーブル以上に分かれています。複数のJOINを連鎖させるパターンを習得すると、実務クエリの幅が一気に広がります。',
+            content: [
+              '**複数JOINの書き方**: `FROM A JOIN B ON ... JOIN C ON ...` のように JOIN を連鎖させます。追加するJOINごとに ON 条件を書きます。',
+              '3テーブル結合の読み方: まず `FROM orders o` でベーステーブルを決め、`JOIN customers c ON o.customer_id = c.id` で顧客を結合、`JOIN products p ON o.product_id = p.id` で商品を結合します。「注文」を中心に放射状に繋げるイメージです。',
+              '**列の計算**: SELECT 節で `(o.quantity * p.price) AS subtotal` のように演算式を書けます。これが集計なしで「各行の小計」を出す方法です。',
+              'テーブルの別名（エイリアス）が特に重要になります。`c.name`（顧客名）と `p.name`（商品名）のように同じ列名が複数テーブルに存在するとき、エイリアスなしでは `ambiguous column name` エラーになります。',
+            ],
+            points: [
+              'JOIN を連鎖させて複数テーブルを結合: `JOIN A ON ... JOIN B ON ...`',
+              'SELECT で演算式（`qty * price`）を書いて派生列を作れる',
+              '同名列が複数テーブルにある場合は `table.column` で明示',
+            ],
+            quiz: {
+              question: '3テーブル（orders, customers, products）を結合するとき、JOINの個数は？',
+              hint: '「N個のテーブルを全て結合するのに必要なJOINの数」を考えてください。',
+              options: [
+                { text: '1つ（JOIN 1回で3テーブルを繋げる）', correct: false, why: '1つのJOINは2テーブルの結合です。3テーブルを結合するには2つのJOINが必要です。' },
+                { text: '2つ（JOIN を2回書く）', correct: true, why: '正解！N テーブルを結合するには N-1 個の JOIN が必要です。3テーブルなら2つの JOIN を連鎖させます: `FROM orders o JOIN customers c ON ... JOIN products p ON ...`' },
+                { text: '3つ（各テーブルに1つずつ）', correct: false, why: 'ベーステーブル（FROM）は JOIN を使いません。3テーブルなら FROM 1個 + JOIN 2個です。' },
+              ],
+            },
+            sqlChallenge: {
+              prompt:
+                '3つのテーブル（customers, orders, products）を結合して、「顧客名・商品名・数量・小計（数量×単価）」の一覧を小計の大きい順で取得してください。列は customer（顧客名）, product（商品名）, quantity（数量）, subtotal（小計）です。',
+              schemaSql: `CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, city TEXT);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, product_id INTEGER, quantity INTEGER);
+CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price INTEGER);`,
+              seedSql: `INSERT INTO customers VALUES (1, '田中', '東京'), (2, '佐藤', '大阪'), (3, '鈴木', '名古屋');
+INSERT INTO products VALUES (1, 'ノートPC', 89800), (2, 'マウス', 2980), (3, 'キーボード', 5500);
+INSERT INTO orders VALUES (1, 1, 1, 1), (2, 1, 2, 2), (3, 2, 3, 1), (4, 3, 1, 2), (5, 2, 1, 1);`,
+              solutionSql: `SELECT c.name AS customer, p.name AS product, o.quantity, (o.quantity * p.price) AS subtotal
+FROM orders o
+JOIN customers c ON o.customer_id = c.id
+JOIN products p ON o.product_id = p.id
+ORDER BY subtotal DESC;`,
+              hints: [
+                'FROM orders o を起点に JOIN customers c ON o.customer_id = c.id → JOIN products p ON o.product_id = p.id と連鎖する',
+                '小計（subtotal）は `o.quantity * p.price` の演算式で計算',
+                '顧客名は c.name、商品名は p.name（エイリアスで区別）',
+              ],
+            },
+          },
+        ],
+      },
     ],
   },
 ]

@@ -150,6 +150,10 @@
         backend: 'be-',
         infrastructure: 'infra-',
         database: 'db-',
+        git: 'git-',
+        'http-api': 'http-',
+        testing: 'test-',
+        practice: 'pr-',
         marketing: 'mkt-',
         management: 'mgmt-',
         sales: 'sales-',
@@ -574,6 +578,453 @@
     }
 
     renderStep()
+  }
+
+  /* ========== スキルチェックリスト ========== */
+  const SKILLS_KEY = 'dojo-skills-v1'
+
+  function loadSkills() {
+    try {
+      return JSON.parse(localStorage.getItem(SKILLS_KEY)) || {}
+    } catch (e) {
+      return {}
+    }
+  }
+  function saveSkills(s) {
+    localStorage.setItem(SKILLS_KEY, JSON.stringify(s))
+  }
+
+  // ダッシュボードのスキル統計を描画
+  if (document.getElementById('stat-skill-ok')) {
+    var skills = loadSkills()
+    var okCount = 0, partialCount = 0, ngCount = 0
+    Object.values(skills).forEach(function (v) {
+      if (v === 'ok') okCount++
+      else if (v === 'partial') partialCount++
+      else if (v === 'ng') ngCount++
+    })
+    document.getElementById('stat-skill-ok').textContent = okCount
+    document.getElementById('stat-skill-partial').textContent = partialCount
+    document.getElementById('stat-skill-weakness').textContent = ngCount
+  }
+
+  // レッスンページのスキルチェックボタン
+  document.querySelectorAll('.skill-check-section').forEach(function (section) {
+    var lessonId = section.dataset.lessonId
+    var skills = loadSkills()
+    var current = skills[lessonId]
+    var savedMsg = section.querySelector('.skill-check-saved')
+
+    function updateButtons(level) {
+      var btns = section.querySelectorAll('.skill-check-btn')
+      btns.forEach(function (btn) {
+        btn.classList.remove('border-emerald-400', 'bg-emerald-400/10', 'text-emerald-300',
+          'border-amber-400', 'bg-amber-400/10', 'text-amber-300',
+          'border-rose-400', 'bg-rose-400/10', 'text-rose-300')
+        btn.classList.add('border-dojo-700')
+        if (btn.dataset.level === level) {
+          btn.classList.remove('border-dojo-700')
+          if (level === 'ok') btn.classList.add('border-emerald-400', 'bg-emerald-400/10', 'text-emerald-300')
+          else if (level === 'partial') btn.classList.add('border-amber-400', 'bg-amber-400/10', 'text-amber-300')
+          else if (level === 'ng') btn.classList.add('border-rose-400', 'bg-rose-400/10', 'text-rose-300')
+        }
+      })
+    }
+
+    if (current) updateButtons(current)
+
+    section.querySelectorAll('.skill-check-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var level = btn.dataset.level
+        var skills = loadSkills()
+        skills[lessonId] = level
+        saveSkills(skills)
+        updateButtons(level)
+        if (savedMsg) savedMsg.classList.remove('hidden')
+      })
+    })
+  })
+
+  // 弱点マップページ
+  var weaknessMapContent = document.getElementById('weakness-map-content')
+  if (weaknessMapContent) {
+    var skills = loadSkills()
+    var okC = 0, partC = 0, ngC = 0
+
+    // バッジを更新
+    document.querySelectorAll('[data-skill-badge]').forEach(function (el) {
+      var id = el.dataset.skillBadge
+      var level = skills[id]
+      if (level === 'ok') {
+        el.innerHTML = '<span class="text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-2 py-1 rounded-full"><i class="fa-solid fa-circle-check mr-1"></i>できる</span>'
+        okC++
+      } else if (level === 'partial') {
+        el.innerHTML = '<span class="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2 py-1 rounded-full"><i class="fa-solid fa-circle-half-stroke mr-1"></i>だいたいできる</span>'
+        partC++
+      } else if (level === 'ng') {
+        el.innerHTML = '<span class="text-xs text-rose-400 bg-rose-400/10 border border-rose-400/30 px-2 py-1 rounded-full"><i class="fa-solid fa-circle-xmark mr-1"></i>できない</span>'
+        ngC++
+      }
+    })
+
+    // サマリーカード更新
+    var okEl = document.getElementById('skill-achieved-count')
+    var partEl = document.getElementById('skill-partial-count')
+    var ngEl = document.getElementById('skill-weakness-count')
+    if (okEl) okEl.textContent = okC
+    if (partEl) partEl.textContent = partC
+    if (ngEl) ngEl.textContent = ngC
+
+    // トラック別サマリー
+    document.querySelectorAll('[data-track-skill-summary]').forEach(function (el) {
+      var trackId = el.dataset.trackSkillSummary
+      var trackItems = document.querySelectorAll('.weakness-track-section[data-track-id="' + trackId + '"] [data-skill-badge]')
+      var tOk = 0, tWeak = 0
+      trackItems.forEach(function (item) {
+        var lvl = skills[item.dataset.skillBadge]
+        if (lvl === 'ok') tOk++
+        else if (lvl === 'ng') tWeak++
+      })
+      if (tWeak > 0) {
+        el.textContent = '弱点 ' + tWeak + ' 件'
+        el.className = el.className.replace(/text-\w+-\d+/g, 'text-rose-400').replace(/bg-\w+-\d+\/\d+/g, 'bg-rose-400/10')
+      } else if (tOk > 0) {
+        el.textContent = '達成 ' + tOk + ' 件'
+        el.className = el.className.replace(/text-\w+-\d+/g, 'text-emerald-400').replace(/bg-\w+-\d+\/\d+/g, 'bg-emerald-400/10')
+      } else {
+        el.textContent = '未チェック'
+      }
+    })
+
+    // フィルタボタン
+    var currentFilter = 'weakness'
+    document.querySelectorAll('.skill-filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentFilter = btn.dataset.filter
+        document.querySelectorAll('.skill-filter-btn').forEach(function (b) {
+          b.classList.remove('border-amber-400', 'text-amber-400')
+          b.classList.add('border-dojo-700', 'text-gray-400')
+        })
+        btn.classList.remove('border-dojo-700', 'text-gray-400')
+        btn.classList.add('border-amber-400', 'text-amber-400')
+
+        document.querySelectorAll('.skill-map-item').forEach(function (item) {
+          var id = item.dataset.lessonId
+          var level = skills[id]
+          if (currentFilter === 'weakness') {
+            var isWeak = !level || level === 'ng'
+            item.style.display = isWeak ? '' : 'none'
+          } else {
+            item.style.display = ''
+          }
+        })
+      })
+    })
+
+    // 初期状態: 弱点フィルタを適用
+    document.querySelectorAll('.skill-map-item').forEach(function (item) {
+      var id = item.dataset.lessonId
+      var level = skills[id]
+      var isWeak = !level || level === 'ng'
+      item.style.display = isWeak ? '' : 'none'
+    })
+  }
+
+  /* ========== デイリークイズエンジン ========== */
+  var DAILY_KEY = 'dojo-daily-quiz-v1'
+  var REVIEWS_KEY = 'dojo-reviews-v1'
+
+  function loadDailyState() {
+    try {
+      return JSON.parse(localStorage.getItem(DAILY_KEY)) || { history: [], streak: 0, lastDate: null }
+    } catch (e) {
+      return { history: [], streak: 0, lastDate: null }
+    }
+  }
+  function saveDailyState(s) {
+    localStorage.setItem(DAILY_KEY, JSON.stringify(s))
+  }
+  function loadReviews() {
+    try {
+      return JSON.parse(localStorage.getItem(REVIEWS_KEY)) || []
+    } catch (e) {
+      return []
+    }
+  }
+  function saveReviews(r) {
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(r))
+  }
+
+  function getTodayStr() {
+    var d = new Date()
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+  }
+
+  // 日付ベースのシード乱数（同じ日は同じ問題）
+  function seededShuffle(arr, seed) {
+    var a = arr.slice()
+    var s = seed
+    for (var i = a.length - 1; i > 0; i--) {
+      s = (s * 1664525 + 1013904223) & 0xffffffff
+      var j = Math.abs(s) % (i + 1)
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp
+    }
+    return a
+  }
+
+  function dateSeed(dateStr) {
+    var n = 0
+    for (var i = 0; i < dateStr.length; i++) n = n * 31 + dateStr.charCodeAt(i)
+    return n
+  }
+
+  var dailyQuizArea = document.getElementById('daily-quiz-area')
+  if (dailyQuizArea) {
+    var poolDataEl = document.getElementById('daily-quiz-pool-data')
+    if (!poolDataEl) return
+
+    var pool = []
+    try {
+      pool = JSON.parse(poolDataEl.textContent)
+    } catch (e) {
+      dailyQuizArea.innerHTML = '<p class="text-red-400 text-sm">クイズデータの読み込みに失敗しました。</p>'
+      return
+    }
+
+    var today = getTodayStr()
+    var dailyState = loadDailyState()
+
+    // 日付表示
+    var dateEl = document.getElementById('daily-date')
+    if (dateEl) {
+      var parts = today.split('-')
+      dateEl.textContent = parts[0] + '年' + parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日'
+    }
+
+    // 今日すでに回答済みかチェック
+    var todayRecord = dailyState.history.find(function (h) { return h.date === today })
+
+    // ストリーク更新
+    var yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    var yesterdayStr = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0')
+    if (dailyState.lastDate !== today && dailyState.lastDate !== yesterdayStr) {
+      dailyState.streak = 0
+    }
+    var streakEl = document.getElementById('daily-streak')
+    if (streakEl) streakEl.textContent = (dailyState.streak || 0) + '日'
+
+    // 今日の3問を選ぶ（シード付きシャッフル）
+    var seed = dateSeed(today)
+    var shuffled = seededShuffle(pool, seed)
+    var todayQuestions = shuffled.slice(0, 3)
+
+    if (todayRecord) {
+      // 回答済みの場合は結果を表示
+      renderDailyResult(todayRecord, todayQuestions)
+    } else {
+      // 未回答の場合はクイズを表示
+      renderDailyQuiz(todayQuestions)
+    }
+
+    // 履歴を描画
+    renderDailyHistory()
+    // 復習リストを描画
+    renderReviewList()
+
+    function renderDailyQuiz(questions) {
+      var currentQ = 0
+      var answers = []
+
+      function showQuestion(idx) {
+        var q = questions[idx]
+        var html =
+          '<div class="mb-3">' +
+          '<p class="text-xs text-gray-500 mb-1">' + (idx + 1) + ' / ' + questions.length + ' 問目</p>' +
+          '<div class="h-1.5 bg-dojo-700 rounded-full mb-6"><div class="h-full bg-amber-400 rounded-full transition-all" style="width:' + Math.round((idx / questions.length) * 100) + '%"></div></div>' +
+          '</div>' +
+          '<p class="font-medium text-lg mb-6 leading-relaxed">' + escapeHtml(q.question) + '</p>' +
+          '<div class="space-y-3" id="dq-options">'
+        q.options.forEach(function (opt, i) {
+          html += '<button class="dq-opt-btn w-full text-left px-5 py-3.5 rounded-xl border border-dojo-700 hover:border-amber-400/60 transition text-sm" data-index="' + i + '">' +
+            '<span class="text-gray-500 mr-2">' + String.fromCharCode(65 + i) + '.</span>' + escapeHtml(opt) + '</button>'
+        })
+        html += '</div><div id="dq-feedback" class="hidden mt-5"></div>'
+        dailyQuizArea.innerHTML = html
+
+        document.querySelectorAll('.dq-opt-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var chosen = parseInt(btn.dataset.index)
+            var correct = chosen === q.correctIndex
+            answers.push({ questionId: q.id, chosen: chosen, correct: correct })
+
+            document.querySelectorAll('.dq-opt-btn').forEach(function (b) {
+              b.disabled = true
+              b.classList.add('opacity-60')
+              if (parseInt(b.dataset.index) === q.correctIndex) {
+                b.classList.remove('opacity-60')
+                b.classList.add('border-emerald-400', 'bg-emerald-400/10')
+              }
+            })
+            if (!correct) btn.classList.add('border-red-400', 'bg-red-400/10')
+
+            var fb = document.getElementById('dq-feedback')
+            fb.classList.remove('hidden')
+            fb.className = 'mt-5 p-4 rounded-xl text-sm leading-relaxed ' +
+              (correct ? 'bg-emerald-400/10 border border-emerald-400/40' : 'bg-red-400/10 border border-red-400/40')
+            fb.innerHTML =
+              '<p class="font-bold mb-2">' +
+              (correct ? '<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i>正解！' : '<i class="fa-solid fa-circle-xmark text-red-400 mr-1"></i>不正解') +
+              '</p><p class="text-gray-300">' + escapeHtml(q.explanation) + '</p>'
+
+            // 不正解なら復習リストに追加
+            if (!correct) {
+              addToReviewList(q.id, today)
+            }
+
+            // 次ボタン or 完了
+            var nextBtn = document.createElement('button')
+            nextBtn.className = 'mt-4 bg-amber-400 text-dojo-950 font-bold px-6 py-2 rounded-lg hover:bg-amber-300 transition text-sm'
+            if (currentQ < questions.length - 1) {
+              nextBtn.textContent = '次の問題へ →'
+              nextBtn.addEventListener('click', function () {
+                currentQ++
+                showQuestion(currentQ)
+              })
+            } else {
+              nextBtn.innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>'
+              nextBtn.addEventListener('click', function () {
+                finalizeDailyQuiz(answers, questions)
+              })
+            }
+            fb.appendChild(nextBtn)
+          })
+        })
+      }
+
+      showQuestion(0)
+    }
+
+    function finalizeDailyQuiz(answers, questions) {
+      var correct = answers.filter(function (a) { return a.correct }).length
+      var record = {
+        date: today,
+        correct: correct,
+        total: questions.length,
+        answers: answers,
+      }
+      dailyState.history.unshift(record)
+      if (dailyState.history.length > 30) dailyState.history = dailyState.history.slice(0, 30)
+      if (dailyState.lastDate !== today) {
+        dailyState.streak = (dailyState.lastDate === yesterdayStr ? (dailyState.streak || 0) + 1 : 1)
+        dailyState.lastDate = today
+      }
+      saveDailyState(dailyState)
+      renderDailyResult(record, questions)
+      renderDailyHistory()
+      renderReviewList()
+      var streakEl = document.getElementById('daily-streak')
+      if (streakEl) streakEl.textContent = (dailyState.streak || 0) + '日'
+    }
+
+    function renderDailyResult(record, questions) {
+      var pct = Math.round((record.correct / record.total) * 100)
+      var color = pct === 100 ? 'text-emerald-400' : pct >= 66 ? 'text-amber-400' : 'text-rose-400'
+      dailyQuizArea.innerHTML =
+        '<div class="bg-dojo-800 border border-dojo-700 rounded-2xl p-8 text-center">' +
+        '<i class="fa-solid ' + (pct === 100 ? 'fa-trophy text-amber-400' : 'fa-circle-check ' + color) + ' text-5xl mb-4"></i>' +
+        '<p class="text-3xl font-black ' + color + ' mb-1">' + record.correct + ' / ' + record.total + '</p>' +
+        '<p class="text-gray-400 text-sm mb-4">正答率 ' + pct + '%</p>' +
+        (pct === 100
+          ? '<p class="text-emerald-400 text-sm font-bold mb-6">全問正解！素晴らしい！</p>'
+          : '<p class="text-gray-300 text-sm mb-6">間違えた問題は復習リストに追加されました。</p>') +
+        '<p class="text-xs text-gray-500">明日また3問出題されます。</p></div>'
+    }
+
+    function renderDailyHistory() {
+      var histEl = document.getElementById('daily-history')
+      if (!histEl) return
+      var state = loadDailyState()
+      if (!state.history || state.history.length === 0) {
+        histEl.innerHTML = '<p class="text-gray-500 text-sm">履歴なし</p>'
+        return
+      }
+      var html = '<div class="space-y-2">'
+      state.history.slice(0, 7).forEach(function (h) {
+        var pct = Math.round((h.correct / h.total) * 100)
+        var color = pct === 100 ? 'text-emerald-400' : pct >= 66 ? 'text-amber-400' : 'text-rose-400'
+        html += '<div class="flex items-center gap-4 bg-dojo-800 border border-dojo-700 rounded-xl px-4 py-3">' +
+          '<p class="text-sm text-gray-400">' + h.date + '</p>' +
+          '<div class="flex-1 h-2 bg-dojo-700 rounded-full"><div class="h-full bg-amber-400 rounded-full" style="width:' + pct + '%"></div></div>' +
+          '<p class="text-sm font-bold ' + color + '">' + h.correct + '/' + h.total + '</p>' +
+          '</div>'
+      })
+      html += '</div>'
+      histEl.innerHTML = html
+    }
+
+    function addToReviewList(questionId, dateStr) {
+      var reviews = loadReviews()
+      var existing = reviews.find(function (r) { return r.id === questionId })
+      if (!existing) {
+        var intervals = [1, 3, 7, 30]
+        var reviewDates = intervals.map(function (d) {
+          var dt = new Date(dateStr)
+          dt.setDate(dt.getDate() + d)
+          return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0')
+        })
+        reviews.push({ id: questionId, addedDate: dateStr, reviewDates: reviewDates, completedDates: [] })
+        saveReviews(reviews)
+      }
+    }
+
+    function renderReviewList() {
+      var listEl = document.getElementById('daily-review-list')
+      if (!listEl) return
+      var reviews = loadReviews()
+      if (reviews.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500 text-sm">復習待ちの問題なし</p>'
+        return
+      }
+      var todayStr = getTodayStr()
+      var due = reviews.filter(function (r) {
+        return r.reviewDates.some(function (d) { return d <= todayStr && !r.completedDates.includes(d) })
+      })
+      var upcoming = reviews.filter(function (r) {
+        return r.reviewDates.some(function (d) { return d > todayStr })
+      })
+
+      var html = ''
+      if (due.length > 0) {
+        html += '<p class="text-sm font-bold text-rose-400 mb-2"><i class="fa-solid fa-bell mr-1"></i>本日の復習（' + due.length + '件）</p>'
+        html += '<div class="space-y-2 mb-4">'
+        due.forEach(function (r) {
+          var q = pool.find(function (p) { return p.id === r.id })
+          if (!q) return
+          html += '<div class="bg-rose-400/10 border border-rose-400/30 rounded-xl p-4">' +
+            '<p class="text-sm font-medium text-rose-300 mb-1">' + escapeHtml(q.question) + '</p>' +
+            '<p class="text-xs text-gray-400">正解: ' + escapeHtml(q.options[q.correctIndex]) + '</p>' +
+            '<p class="text-xs text-gray-500 mt-1 leading-relaxed">' + escapeHtml(q.explanation) + '</p></div>'
+        })
+        html += '</div>'
+      }
+      if (upcoming.length > 0) {
+        html += '<p class="text-sm text-gray-500 mb-2">今後の復習予定: ' + upcoming.length + '件</p>'
+        html += '<div class="space-y-1">'
+        upcoming.forEach(function (r) {
+          var nextDate = r.reviewDates.filter(function (d) { return d > todayStr }).sort()[0]
+          var q = pool.find(function (p) { return p.id === r.id })
+          if (!q) return
+          html += '<div class="flex items-center gap-3 text-xs text-gray-500 bg-dojo-800 border border-dojo-700 rounded-lg px-3 py-2">' +
+            '<i class="fa-solid fa-calendar text-gray-600"></i>' +
+            '<span class="flex-1 truncate">' + escapeHtml(q.question.substring(0, 40)) + '…</span>' +
+            '<span class="text-amber-400">' + nextDate + '</span></div>'
+        })
+        html += '</div>'
+      }
+      if (!html) html = '<p class="text-gray-500 text-sm">復習待ちの問題なし</p>'
+      listEl.innerHTML = html
+    }
   }
 
   /* ========== SQL演習（ブラウザ内SQLite: sql.js） ========== */

@@ -17,6 +17,7 @@ const colorMap: Record<string, { text: string; bg: string; border: string }> = {
   amber: { text: 'text-amber-400', bg: 'bg-amber-400/10', border: 'hover:border-amber-400/60' },
   teal: { text: 'text-teal-400', bg: 'bg-teal-400/10', border: 'hover:border-teal-400/60' },
   violet: { text: 'text-violet-400', bg: 'bg-violet-400/10', border: 'hover:border-violet-400/60' },
+  rose: { text: 'text-rose-400', bg: 'bg-rose-400/10', border: 'hover:border-rose-400/60' },
 }
 
 export function getColor(color: string) {

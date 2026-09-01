@@ -49,12 +49,15 @@ export const renderer = jsxRenderer(({ children, title }) => {
               <i class="fa-solid fa-torii-gate text-amber-400"></i>
               <span>一人前エンジニア道場</span>
             </a>
-            <nav class="flex items-center gap-4 text-sm">
+            <nav class="flex items-center gap-3 text-sm">
               <a href="/tracks" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book-open mr-1"></i>カリキュラム
               </a>
               <a href="/scenarios" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-user-ninja mr-1"></i>実践シナリオ
+              </a>
+              <a href="/daily-quiz" class="hover:text-amber-400 transition">
+                <i class="fa-solid fa-calendar-day mr-1"></i>デイリークイズ
               </a>
               <a href="/glossary" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book mr-1"></i>用語集

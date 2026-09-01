@@ -275,6 +275,45 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
           </section>
         )}
 
+        {/* スキルチェックリスト */}
+        <section class="skill-check-section bg-dojo-900 border border-dojo-700 rounded-xl p-6 mb-8" data-lesson-id={lesson.id}>
+          <h2 class="font-bold mb-1">
+            <i class="fa-solid fa-clipboard-check text-amber-400 mr-2"></i>スキルセルフチェック
+          </h2>
+          <p class="text-sm text-gray-400 mb-4">このレッスンの内容をどの程度理解できましたか？</p>
+          <div class="flex flex-wrap gap-3">
+            <button
+              class="skill-check-btn flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dojo-700 hover:border-emerald-400/60 transition text-sm font-medium"
+              data-level="ok"
+            >
+              <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+              <span>できる</span>
+            </button>
+            <button
+              class="skill-check-btn flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dojo-700 hover:border-amber-400/60 transition text-sm font-medium"
+              data-level="partial"
+            >
+              <i class="fa-solid fa-circle-half-stroke text-amber-400 text-base"></i>
+              <span>だいたいできる</span>
+            </button>
+            <button
+              class="skill-check-btn flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dojo-700 hover:border-rose-400/60 transition text-sm font-medium"
+              data-level="ng"
+            >
+              <i class="fa-solid fa-circle-xmark text-rose-400 text-base"></i>
+              <span>できない</span>
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-3 skill-check-saved hidden">
+            <i class="fa-solid fa-check text-emerald-400 mr-1"></i>チェック結果を保存しました
+          </p>
+          <div class="mt-3">
+            <a href="/weakness-map" class="text-xs text-gray-500 hover:text-amber-400 transition">
+              <i class="fa-solid fa-map mr-1"></i>弱点マップで全体を確認する
+            </a>
+          </div>
+        </section>
+
         <div class="flex items-center justify-between border-t border-dojo-700 pt-6">
           <button
             id="lesson-complete-btn"
