@@ -7,6 +7,8 @@ import { gitTracks } from './tracks/git'
 import { httpTracks } from './tracks/http'
 import { testingTracks } from './tracks/testing'
 import { practiceTracks } from './tracks/practice'
+import { aiDevTracks } from './tracks/ai-dev'
+import { dxScenarioTracks } from './tracks/dx-scenario'
 import { scenarios } from './scenarios'
 
 // 入門トラックを先頭に配置（初学者はここから始める）
@@ -17,7 +19,9 @@ export const tracks: Track[] = [
   ...httpTracks,
   ...testingTracks,
   ...practiceTracks,
+  ...aiDevTracks,
   ...businessTracks,
+  ...dxScenarioTracks,
   ...aiTracks,
 ]
 export { scenarios }

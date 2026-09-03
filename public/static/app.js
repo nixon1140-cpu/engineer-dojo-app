@@ -154,6 +154,8 @@
         'http-api': 'http-',
         testing: 'test-',
         practice: 'pr-',
+        'ai-dev': 'aid-',
+        'dx-scenario': 'dx-',
         marketing: 'mkt-',
         management: 'mgmt-',
         sales: 'sales-',
