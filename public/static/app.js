@@ -156,6 +156,7 @@
         practice: 'pr-',
         'ai-dev': 'aid-',
         'dx-scenario': 'dx-',
+        portfolio: 'pf-',
         marketing: 'mkt-',
         management: 'mgmt-',
         sales: 'sales-',
@@ -184,6 +185,138 @@
           '<span class="text-gray-500 text-xs ml-2">(' + pct + '%)</span>'
       }
     })
+
+    // ========== 学習時間・ストリーク・活動日数 ==========
+    var lessonTimestamps = Object.values(p.lessons).sort()
+    // 推定学習時間: 1レッスン完了あたり平均20分と仮定
+    var estimatedMinutes = Object.keys(p.lessons).length * 20
+    var studyTimeEl = document.getElementById('stat-study-time')
+    if (studyTimeEl) {
+      if (estimatedMinutes >= 60) {
+        studyTimeEl.innerHTML = Math.floor(estimatedMinutes / 60) + '<span class="text-base font-normal text-gray-400">時間</span>' + (estimatedMinutes % 60) + '<span class="text-base font-normal text-gray-400">分</span>'
+      } else {
+        studyTimeEl.innerHTML = estimatedMinutes + '<span class="text-base font-normal text-gray-400">分</span>'
+      }
+    }
+
+    // 学習した日付を収集（レッスン完了タイムスタンプから）
+    var activeDaySet = {}
+    Object.values(p.lessons).forEach(function (ts) {
+      if (!ts) return
+      var d = new Date(ts)
+      var dayKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+      activeDaySet[dayKey] = (activeDaySet[dayKey] || 0) + 1
+    })
+    // デイリークイズの日付も含める
+    try {
+      var dailyState2 = JSON.parse(localStorage.getItem('dojo-daily-quiz-v1')) || {}
+      if (dailyState2.history) {
+        dailyState2.history.forEach(function (h) { activeDaySet[h.date] = (activeDaySet[h.date] || 0) + 1 })
+      }
+    } catch (e) {}
+
+    var activeDays = Object.keys(activeDaySet).sort()
+    var activeDayCount = activeDays.length
+    var activeDaysEl = document.getElementById('stat-active-days')
+    if (activeDaysEl) activeDaysEl.innerHTML = activeDayCount + '<span class="text-base font-normal text-gray-400">日</span>'
+
+    // ストリーク計算（連続学習日数）
+    var streak = 0
+    if (activeDays.length > 0) {
+      var today = new Date()
+      var todayStr2 = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+      var yesterday2 = new Date(today)
+      yesterday2.setDate(yesterday2.getDate() - 1)
+      var yesterdayStr2 = yesterday2.getFullYear() + '-' + String(yesterday2.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday2.getDate()).padStart(2, '0')
+
+      var checkDate = activeDaySet[todayStr2] ? todayStr2 : (activeDaySet[yesterdayStr2] ? yesterdayStr2 : null)
+      if (checkDate) {
+        streak = 1
+        var prev = new Date(checkDate)
+        while (true) {
+          prev.setDate(prev.getDate() - 1)
+          var prevStr = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0') + '-' + String(prev.getDate()).padStart(2, '0')
+          if (activeDaySet[prevStr]) { streak++ } else { break }
+        }
+      }
+    }
+    var streakEl2 = document.getElementById('stat-streak')
+    if (streakEl2) streakEl2.innerHTML = streak + '<span class="text-base font-normal text-gray-400">日</span>'
+
+    // ========== 活動履歴（日別サマリ・直近30日） ==========
+    var historyEl = document.getElementById('activity-history')
+    if (historyEl && activeDays.length > 0) {
+      // 直近30日分を新しい順に表示
+      var recentDays = activeDays.slice(-30).reverse()
+      var html = '<div class="space-y-2">'
+      recentDays.forEach(function (day) {
+        var count = activeDaySet[day]
+        var parts = day.split('-')
+        var label = parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日'
+        html += '<div class="flex items-center gap-3 bg-dojo-800 border border-dojo-700 rounded-lg px-4 py-3">' +
+          '<span class="text-xs text-gray-400 w-20 shrink-0">' + label + '</span>' +
+          '<div class="flex-1 h-2 bg-dojo-700 rounded-full overflow-hidden">' +
+          '<div class="h-full bg-amber-400 rounded-full transition-all" style="width:' + Math.min(100, count * 20) + '%"></div>' +
+          '</div>' +
+          '<span class="text-xs text-amber-400 font-bold w-16 text-right shrink-0">' + count + ' アクション</span>' +
+          '</div>'
+      })
+      html += '</div>'
+      historyEl.innerHTML = html
+    }
+
+    // ========== バッジ判定 ==========
+    var lessonsCount = Object.keys(p.lessons).length
+    var scenariosCount = Object.keys(p.scenarios).length
+
+    // 全トラック到達チェック（全トラックで1本以上完了）
+    var trackPrefixes2 = {
+      beginner: 'bg-', git: 'git-', 'http-api': 'http-', testing: 'test-',
+      practice: 'pr-', 'ai-dev': 'aid-', 'dx-scenario': 'dx-', portfolio: 'pf-',
+      marketing: 'mkt-', management: 'mgmt-', sales: 'sales-', 'ai-engineering': 'ai-'
+    }
+    var allTracksCovered = true
+    Object.values(trackPrefixes2).forEach(function (prefix) {
+      if (!Object.keys(p.lessons).some(function (id) { return id.startsWith(prefix) })) {
+        allTracksCovered = false
+      }
+    })
+
+    // シナリオ全制覇チェック（全シナリオを80%以上でクリア）
+    var allScenariosAce = Object.values(p.scenarios).length >= 14 &&
+      Object.values(p.scenarios).every(function (rec) {
+        return rec && rec.max && Math.round((rec.score / rec.max) * 100) >= 80
+      })
+
+    // スキルチェック完走チェック（10レッスン以上にスキルチェック記録）
+    var skillsCount = 0
+    try {
+      var skillsData = JSON.parse(localStorage.getItem('dojo-skills-v1')) || {}
+      skillsCount = Object.keys(skillsData).length
+    } catch (e) {}
+
+    var badgeConditions = {
+      'first-lesson': lessonsCount >= 1,
+      'ten-lessons': lessonsCount >= 10,
+      'twenty-lessons': lessonsCount >= 20,
+      'all-tracks': allTracksCovered,
+      'scenario-master': scenariosCount >= 5,
+      'scenario-ace': allScenariosAce,
+      'streak-three': streak >= 3,
+      'skill-check': skillsCount >= 10,
+    }
+
+    var earnedBadges = 0
+    document.querySelectorAll('.badge-card').forEach(function (card) {
+      var badgeId = card.dataset.badgeId
+      if (badgeConditions[badgeId]) {
+        card.classList.remove('opacity-40')
+        card.classList.add('ring-2', 'ring-amber-400/40')
+        earnedBadges++
+      }
+    })
+    var badgeCountEl = document.getElementById('badge-count')
+    if (badgeCountEl) badgeCountEl.textContent = earnedBadges
 
     // リセットボタン
     const resetBtn = document.getElementById('progress-reset-btn')

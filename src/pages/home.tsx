@@ -121,10 +121,22 @@ export const HomePage: FC = () => {
         <h2 class="text-2xl font-bold mb-2 text-center">
           <i class="fa-solid fa-map text-amber-400 mr-2"></i>学習ロードマップ
         </h2>
-        <p class="text-gray-400 text-center mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p class="text-gray-400 text-center mb-4 max-w-2xl mx-auto leading-relaxed">
           この道場は「入口」と「土台」です。ここで基礎と判断力を身につけたら、
           次は<strong class="text-gray-200">自分の手で実際に作る</strong>ステージへ進みましょう。
         </p>
+        {/* フェーズバッジ */}
+        <div class="flex flex-wrap justify-center gap-3 mb-10">
+          {[
+            { phase: 'フェーズ1', label: '入門・技術・ビジネス基礎', color: 'emerald' },
+            { phase: 'フェーズ2', label: 'AI活用・DX・高度演習', color: 'violet' },
+            { phase: 'フェーズ3', label: 'ポートフォリオ・面接対策', color: 'amber' },
+          ].map((p) => (
+            <span class={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-${p.color}-400/10 text-${p.color}-300 border border-${p.color}-400/30`}>
+              <i class="fa-solid fa-check-circle"></i>{p.phase}: {p.label} ✅ 実装済み
+            </span>
+          ))}
+        </div>
         <div class="grid md:grid-cols-4 gap-4">
           {[
             {
@@ -132,28 +144,32 @@ export const HomePage: FC = () => {
               title: '入門で基礎体力',
               icon: 'fa-seedling',
               place: 'この道場',
-              desc: '「プログラミング基礎（入門）」で変数・分岐・関数をブラウザ内演習で習得。エラーの読み方もここで。',
+              badge: '✅ フェーズ1',
+              desc: '「プログラミング基礎（入門）」で変数・分岐・関数をブラウザ内演習で習得。Gitトラック・HTTPトラック・テスト/実務演習・デイリークイズ・スキルチェックも完備。',
             },
             {
               step: 'STEP 2',
               title: '技術・視点の土台',
               icon: 'fa-layer-group',
               place: 'この道場',
-              desc: 'フロント〜DBの技術トラックとビジネス視点、AI時代の判断力を学び、シナリオで現場の判断を疑似体験。',
+              badge: '✅ フェーズ2',
+              desc: 'AI活用開発演習・DX改善シナリオで現代エンジニアの実践力を強化。ビジネス視点・AI時代の判断力を学び、14本のロールプレイシナリオで現場判断を疑似体験。',
             },
             {
               step: 'STEP 3',
-              title: '実際に作ってみる',
-              icon: 'fa-hammer',
-              place: '道場の外',
-              desc: '自分のPCに環境構築し、小さなアプリを0から作る。Git/GitHubでコードを公開してポートフォリオに。',
+              title: 'ポートフォリオ設計',
+              icon: 'fa-folder-open',
+              place: 'この道場',
+              badge: '✅ フェーズ3',
+              desc: 'ポートフォリオ制作演習（4レッスン）と面接ロールプレイ3本で「作れる・説明できる」エンジニアへ。DB設計・API設計・README作成・面接ストーリーを完全設計。',
             },
             {
               step: 'STEP 4',
               title: '実践で磨く',
               icon: 'fa-briefcase',
               place: '道場の外',
-              desc: 'インターン・個人開発・コミュニティで、本物のコードレビューとチーム開発を経験する。',
+              badge: null,
+              desc: '設計図を手に自分のPCで実際にポートフォリオを実装・デプロイ。インターン・個人開発・コミュニティで本物のコードレビューとチーム開発を経験する。',
             },
           ].map((s, i) => (
             <div class="relative">
@@ -178,6 +194,9 @@ export const HomePage: FC = () => {
                   <i class={`fa-solid ${s.icon}`}></i>
                 </div>
                 <h3 class="font-bold mb-2">{s.title}</h3>
+                {s.badge && (
+                  <p class="text-xs text-emerald-400 mb-2 font-bold">{s.badge}</p>
+                )}
                 <p class="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
               </div>
               {i < 3 && (
@@ -189,15 +208,21 @@ export const HomePage: FC = () => {
           ))}
         </div>
         <p class="text-xs text-gray-500 text-center mt-8 leading-relaxed">
-          ※ この道場の全コンテンツは約12時間分。一人前の土台を効率よく作るためのもので、
-          これだけで「完成」ではありません。STEP 3以降の実践経験と組み合わせてください。
+          ※ この道場の全3フェーズのコンテンツは約16時間分。一人前の土台と設計力を効率よく習得できます。
+          STEP 4以降は道場の設計図をもとに、実際に手を動かして完成させてください。
         </p>
-        <div class="text-center mt-6">
+        <div class="flex flex-wrap justify-center gap-4 mt-6">
           <a
             href="/tracks/beginner"
             class="inline-block bg-amber-400 text-dojo-950 font-bold px-8 py-3 rounded-lg hover:bg-amber-300 transition text-sm"
           >
             <i class="fa-solid fa-seedling mr-2"></i>STEP 1: 入門トラックから始める
+          </a>
+          <a
+            href="/tracks/portfolio"
+            class="inline-block border border-indigo-400/60 text-indigo-300 font-bold px-8 py-3 rounded-lg hover:bg-indigo-400/10 transition text-sm"
+          >
+            <i class="fa-solid fa-folder-open mr-2"></i>STEP 3: ポートフォリオ設計へ
           </a>
         </div>
       </section>
