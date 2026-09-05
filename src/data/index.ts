@@ -3,6 +3,7 @@ import { beginnerTracks } from './tracks/beginner'
 import { techTracks } from './tracks/tech'
 import { businessTracks } from './tracks/business'
 import { aiTracks } from './tracks/ai-era'
+import { careerStrategyTracks } from './tracks/career-strategy'
 import { gitTracks } from './tracks/git'
 import { httpTracks } from './tracks/http'
 import { testingTracks } from './tracks/testing'
@@ -25,6 +26,7 @@ export const tracks: Track[] = [
   ...businessTracks,
   ...dxScenarioTracks,
   ...aiTracks,
+  ...careerStrategyTracks,
 ]
 export { scenarios }
 

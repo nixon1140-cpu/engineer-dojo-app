@@ -10,6 +10,7 @@ import { DashboardPage } from './pages/dashboard'
 import { GlossaryPage } from './pages/glossary'
 import { DailyQuizPage } from './pages/daily-quiz'
 import { WeaknessMapPage } from './pages/weakness-map'
+import { SelfAnalysisPage } from './pages/self-analysis'
 
 const app = new Hono()
 
@@ -54,6 +55,9 @@ app.get('/daily-quiz', (c) => c.render(<DailyQuizPage />, { title: 'デイリー
 
 // 弱点マップ
 app.get('/weakness-map', (c) => c.render(<WeaknessMapPage />, { title: '弱点マップ' }))
+
+// 自己分析ワークシート
+app.get('/self-analysis', (c) => c.render(<SelfAnalysisPage />, { title: '自己分析ワークシート' }))
 
 // API（進捗データはクライアント側localStorage管理。コンテンツ参照用の軽量API）
 app.get('/api/curriculum', (c) => {

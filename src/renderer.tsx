@@ -62,6 +62,9 @@ export const renderer = jsxRenderer(({ children, title }) => {
               <a href="/glossary" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book mr-1"></i>用語集
               </a>
+              <a href="/self-analysis" class="hover:text-amber-400 transition">
+                <i class="fa-solid fa-map mr-1"></i>自己分析
+              </a>
               <a href="/dashboard" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-chart-line mr-1"></i>進捗
               </a>

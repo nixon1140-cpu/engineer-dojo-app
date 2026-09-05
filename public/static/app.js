@@ -161,6 +161,7 @@
         management: 'mgmt-',
         sales: 'sales-',
         'ai-engineering': 'ai-',
+        'career-strategy': 'cs-',
       }
       const prefix = prefixes[trackId]
       if (!prefix) return
@@ -1352,4 +1353,95 @@
         })
     })
   })
+
+  // ========== 自己分析ワークシート (/self-analysis) ==========
+  ;(function () {
+    var WS_KEY = 'dojo-self-analysis-v1'
+    var occupationEl = document.getElementById('ws-occupation')
+    var industryEl = document.getElementById('ws-industry')
+    var skillsEl = document.getElementById('ws-skills')
+    var summaryEl = document.getElementById('ws-summary')
+    var saveBtn = document.getElementById('ws-save-btn')
+    var clearBtn = document.getElementById('ws-clear-btn')
+    var indicator = document.getElementById('save-indicator')
+
+    if (!occupationEl || !industryEl || !skillsEl || !summaryEl) return
+
+    // localStorageから読み込んで textarea に反映
+    function loadWorksheet() {
+      try {
+        var data = JSON.parse(localStorage.getItem(WS_KEY)) || {}
+        occupationEl.value = data.occupation || ''
+        industryEl.value = data.industry || ''
+        skillsEl.value = data.skills || ''
+        summaryEl.value = data.summary || ''
+      } catch (e) {
+        // パース失敗時は空のまま
+      }
+    }
+
+    // localStorageに保存
+    function saveWorksheet() {
+      var data = {
+        occupation: occupationEl.value,
+        industry: industryEl.value,
+        skills: skillsEl.value,
+        summary: summaryEl.value,
+        updatedAt: Date.now(),
+      }
+      try {
+        localStorage.setItem(WS_KEY, JSON.stringify(data))
+      } catch (e) {
+        // ストレージが満杯の場合などは無視
+      }
+    }
+
+    // 保存成功インジケーターを一時表示
+    function showSaveIndicator() {
+      if (!indicator) return
+      indicator.classList.remove('hidden')
+      clearTimeout(indicator._timer)
+      indicator._timer = setTimeout(function () {
+        indicator.classList.add('hidden')
+      }, 2000)
+    }
+
+    // ページ読み込み時にデータを復元
+    loadWorksheet()
+
+    // 保存ボタン
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        saveWorksheet()
+        showSaveIndicator()
+      })
+    }
+
+    // クリアボタン（確認ダイアログ付き）
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (!confirm('入力内容をすべてクリアしますか？\n（この操作は元に戻せません）')) return
+        occupationEl.value = ''
+        industryEl.value = ''
+        skillsEl.value = ''
+        summaryEl.value = ''
+        try {
+          localStorage.removeItem(WS_KEY)
+        } catch (e) {}
+        showSaveIndicator()
+      })
+    }
+
+    // テキストエリアが変更されたら自動保存（デバウンス 1.5秒）
+    var autoSaveTimer = null
+    function scheduleAutoSave() {
+      clearTimeout(autoSaveTimer)
+      autoSaveTimer = setTimeout(function () {
+        saveWorksheet()
+      }, 1500)
+    }
+    ;[occupationEl, industryEl, skillsEl, summaryEl].forEach(function (el) {
+      if (el) el.addEventListener('input', scheduleAutoSave)
+    })
+  })()
 })()
