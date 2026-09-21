@@ -175,7 +175,7 @@ AI時代カテゴリ: T型人材 / ドメイン知識 / 職能 / リスキリン
 ---
 
 ## 技術スタック
-- **フレームワーク**: Hono 4 + TypeScript + Vite + Cloudflare Pages
+- **フレームワーク**: Hono 4 + TypeScript + Vite（GitHub Pages向け静的サイト生成 + Cloudflare Pages向けSSRの両対応）
 - **レンダリング**: hono/jsx-renderer（SSR）
 - **スタイル**: Tailwind CSS（CDN）
 - **アイコン**: Font Awesome 6
@@ -196,8 +196,18 @@ AI時代カテゴリ: T型人材 / ドメイン知識 / 職能 / リスキリン
 - `/self-analysis` 自己分析ワークシート ★Phase4新規
 
 ## デプロイ
-- **プラットフォーム**: Cloudflare Pages
+メインの公開先は**GitHub Pages**（新規アカウント登録不要・既存GitHubアカウントで完結するため）。Cloudflare向けの構成もそのまま保持しており、必要に応じて両方にデプロイできる。
+
+### GitHub Pages（メイン公開先）
+- **公開URL**: https://nixon1140-cpu.github.io/engineer-dojo-app/
+- **ビルドコマンド**: `npm run build:pages`（`scripts/generate-static.mjs`が`src/index.tsx`のHonoアプリから全ページを静的HTMLとして書き出す）
+- **出力**: `dist-pages/`（118ページ + `404.html` + `api/curriculum.json`、計122ファイル・約2.2MB）
+- **デプロイ方法**: `.github/workflows/deploy-pages.yml`により`main`ブランチへのpushで自動ビルド・デプロイ（GitHub Actions / Settings→Pages→Source: GitHub Actions）
+- **最終ビルド**: 2026-09-22 成功（118ページ生成、`dist-pages/` 約2.2MB）
+
+### Cloudflare Pages / Workers（並行構成として保持）
 - **ビルドコマンド**: `npm run build`
 - **出力**: `dist/`
-- **最終ビルド**: 2026-09-21 成功（581.14 kB / gzip: 185.14 kB）
-- **ステータス**: ✅ 全4フェーズ + 第2ラウンド（Webセキュリティ新設・4トラック拡充・モバイル監査）実装完了
+- **最終ビルド**: 2026-09-22 成功（581.46 kB / gzip: 185.21 kB）
+
+- **ステータス**: ✅ 全4フェーズ + 第2ラウンド（Webセキュリティ新設・4トラック拡充・モバイル監査）+ 第3ラウンド（GitHub Pages向けSSG化）実装完了
