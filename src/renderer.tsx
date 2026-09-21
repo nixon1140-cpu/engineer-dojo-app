@@ -55,7 +55,7 @@ export const renderer = jsxRenderer(({ children, title }) => {
               <i class="fa-solid fa-torii-gate text-amber-400"></i>
               <span>一人前エンジニア道場</span>
             </a>
-            <nav class="flex items-center gap-3 text-sm">
+            <nav class="hidden md:flex items-center gap-3 text-sm">
               <a href="/tracks" class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book-open mr-1"></i>カリキュラム
               </a>
@@ -75,7 +75,39 @@ export const renderer = jsxRenderer(({ children, title }) => {
                 <i class="fa-solid fa-chart-line mr-1"></i>進捗
               </a>
             </nav>
+            <button
+              id="nav-toggle-btn"
+              class="md:hidden text-xl text-gray-200 hover:text-amber-400 transition"
+              aria-label="メニューを開く"
+              aria-expanded="false"
+              aria-controls="mobile-nav"
+            >
+              <i class="fa-solid fa-bars"></i>
+            </button>
           </div>
+          <nav
+            id="mobile-nav"
+            class="hidden md:hidden border-t border-dojo-700 bg-dojo-900 px-4 py-2 text-sm"
+          >
+            <a href="/tracks" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-book-open mr-2 w-4 text-center"></i>カリキュラム
+            </a>
+            <a href="/scenarios" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-user-ninja mr-2 w-4 text-center"></i>実践シナリオ
+            </a>
+            <a href="/daily-quiz" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-calendar-day mr-2 w-4 text-center"></i>デイリークイズ
+            </a>
+            <a href="/glossary" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-book mr-2 w-4 text-center"></i>用語集
+            </a>
+            <a href="/self-analysis" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-map mr-2 w-4 text-center"></i>自己分析
+            </a>
+            <a href="/dashboard" class="block py-2 hover:text-amber-400 transition">
+              <i class="fa-solid fa-chart-line mr-2 w-4 text-center"></i>進捗
+            </a>
+          </nav>
         </header>
         <main class="flex-1">{children}</main>
         <footer class="border-t border-dojo-700 py-8 mt-12">

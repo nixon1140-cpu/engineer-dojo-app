@@ -47,6 +47,34 @@
     },
   }
 
+  /* ========== モバイルナビゲーション（ハンバーガーメニュー） ========== */
+  ;(function () {
+    const toggleBtn = document.getElementById('nav-toggle-btn')
+    const mobileNav = document.getElementById('mobile-nav')
+    if (!toggleBtn || !mobileNav) return
+    toggleBtn.addEventListener('click', function () {
+      const isOpen = !mobileNav.classList.contains('hidden')
+      mobileNav.classList.toggle('hidden')
+      toggleBtn.setAttribute('aria-expanded', String(!isOpen))
+      const icon = toggleBtn.querySelector('i')
+      if (icon) {
+        icon.classList.toggle('fa-bars', isOpen)
+        icon.classList.toggle('fa-xmark', !isOpen)
+      }
+    })
+    mobileNav.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        mobileNav.classList.add('hidden')
+        toggleBtn.setAttribute('aria-expanded', 'false')
+        const icon = toggleBtn.querySelector('i')
+        if (icon) {
+          icon.classList.add('fa-bars')
+          icon.classList.remove('fa-xmark')
+        }
+      })
+    })
+  })()
+
   /* ========== クイズ（レッスンページ） ========== */
   document.querySelectorAll('.quiz-block').forEach((block) => {
     const options = block.querySelectorAll('.quiz-option')
@@ -325,6 +353,78 @@
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
         if (confirm('すべての学習進捗をリセットしますか？')) window.Dojo.reset()
+      })
+    }
+
+    // 進捗のエクスポート／インポート
+    const ioMessageEl = document.getElementById('progress-io-message')
+    function showIoMessage(text, isError) {
+      if (!ioMessageEl) return
+      ioMessageEl.textContent = text
+      ioMessageEl.classList.remove('hidden', 'text-red-400', 'text-emerald-400')
+      ioMessageEl.classList.add(isError ? 'text-red-400' : 'text-emerald-400')
+    }
+
+    const exportBtn = document.getElementById('progress-export-btn')
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const data = {}
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('dojo-')) {
+            data[key] = localStorage.getItem(key)
+          }
+        }
+        const payload = { exportedAt: new Date().toISOString(), data: data }
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'dojo-progress-' + new Date().toISOString().slice(0, 10) + '.json'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        showIoMessage('進捗をエクスポートしました。', false)
+      })
+    }
+
+    const importBtn = document.getElementById('progress-import-btn')
+    const importInput = document.getElementById('progress-import-input')
+    if (importBtn && importInput) {
+      importBtn.addEventListener('click', () => importInput.click())
+      importInput.addEventListener('change', () => {
+        const file = importInput.files && importInput.files[0]
+        importInput.value = ''
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = () => {
+          let parsed
+          try {
+            parsed = JSON.parse(String(reader.result))
+          } catch (e) {
+            showIoMessage('JSONの形式が正しくありません。ファイルを確認してください。', true)
+            return
+          }
+          if (!parsed || typeof parsed.data !== 'object' || parsed.data === null) {
+            showIoMessage('ファイルに"data"が含まれていません。エクスポートしたファイルを指定してください。', true)
+            return
+          }
+          const entries = Object.entries(parsed.data)
+          if (entries.length === 0 || !entries.every(([key]) => key.startsWith('dojo-'))) {
+            showIoMessage('"dojo-"で始まらないキーが含まれています。インポートを中止しました。', true)
+            return
+          }
+          entries.forEach(([key, value]) => {
+            localStorage.setItem(key, String(value))
+          })
+          showIoMessage('進捗をインポートしました。画面を更新します…', false)
+          setTimeout(() => location.reload(), 800)
+        }
+        reader.onerror = () => {
+          showIoMessage('ファイルの読み込みに失敗しました。', true)
+        }
+        reader.readAsText(file)
       })
     }
   }

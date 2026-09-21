@@ -69,12 +69,28 @@ export const DashboardPage: FC = () => {
       <h1 class="text-3xl font-bold mb-2">
         <i class="fa-solid fa-chart-line text-amber-400 mr-2"></i>学習の進捗
       </h1>
-      <p class="text-gray-400 mb-10">
+      <p class="text-gray-400 mb-2">
         進捗はブラウザのローカルストレージに保存されます。
         <button id="progress-reset-btn" class="ml-3 text-xs text-gray-500 underline hover:text-red-400 transition">
           進捗をリセット
         </button>
       </p>
+      <div class="flex flex-wrap items-center gap-3 mb-2">
+        <button
+          id="progress-export-btn"
+          class="text-xs bg-dojo-800 border border-dojo-700 rounded-lg px-3 py-1.5 hover:border-amber-400/60 hover:text-amber-400 transition"
+        >
+          <i class="fa-solid fa-download mr-1"></i>進捗をエクスポート
+        </button>
+        <button
+          id="progress-import-btn"
+          class="text-xs bg-dojo-800 border border-dojo-700 rounded-lg px-3 py-1.5 hover:border-amber-400/60 hover:text-amber-400 transition"
+        >
+          <i class="fa-solid fa-upload mr-1"></i>進捗をインポート
+        </button>
+        <input type="file" id="progress-import-input" accept="application/json" class="hidden" />
+      </div>
+      <p id="progress-io-message" class="text-xs mb-8 hidden"></p>
 
       {/* 全体サマリー */}
       <div class="grid grid-cols-3 gap-4 mb-6">
