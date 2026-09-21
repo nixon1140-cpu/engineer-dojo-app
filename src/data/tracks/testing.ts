@@ -148,6 +148,111 @@ function analyzeNumbers(nums) {
 }`,
             },
           },
+          {
+            id: 'test-1-3',
+            title: '結合テストとE2Eテスト',
+            minutes: 20,
+            intro:
+              '単体テストだけではアプリ全体が正しく動くかは分かりません。テストには役割の異なる複数の種類があり、バランス良く組み合わせる必要があります。',
+            content: [
+              '**テストピラミッド** という考え方があります。土台に **単体テスト**（多数・高速・安価）、中間に **結合テスト**（複数の部品の連携を確認）、頂点に **E2Eテスト**（画面操作を含めた一連の流れ全体を確認・少数・低速・高価）を積み上げるイメージです。',
+              '**結合テスト** は、単体では動く部品同士を組み合わせた時に正しく連携するかを確認します。例えばAPIとDBを実際に繋いで「注文を作成したら在庫が減るか」を確認するテストです。',
+              '**E2E（End-to-End）テスト** はブラウザを操作してユーザー視点で「ログイン→商品購入→注文完了」のような重要な導線を確認します。実行に時間がかかるため、**重要な導線に絞る** のが定石です。',
+              '「全部E2Eで書く」はアンチパターンです。実行に時間がかかりすぎて開発サイクルが遅くなり、失敗時にどこが壊れたのか特定しにくくなります。',
+            ],
+            points: [
+              'テストピラミッド: 単体（多）→結合→E2E（少）',
+              '結合テストは部品同士の連携を確認する',
+              'E2Eは重要な導線に絞る（全部E2Eはアンチパターン）',
+            ],
+            quiz: {
+              question: 'E2Eテストばかり増やしていたら、テストの実行に30分以上かかるようになった。何が起きているか？',
+              hint: 'テストピラミッドの形を思い出しましょう。本来「少数」であるべき層が肥大化すると、ピラミッドの形はどうなるでしょうか。',
+              options: [
+                { text: 'テストピラミッドが逆転している', correct: true, why: '正解！本来少数であるべきE2Eテストが増えすぎ、多数であるべき単体テストが手薄になっている状態です。実行の遅い層が肥大化すると開発サイクル全体が遅くなります。単体・結合テストで代替できる部分を見直しましょう。' },
+                { text: 'テストが多いのは常に良いことなので問題ない', correct: false, why: 'テストの「量」だけでなく「種類のバランス」が重要です。実行速度とフィードバックの速さも開発生産性に直結します。' },
+                { text: 'E2Eテストの書き方が間違っている', correct: false, why: '書き方の問題ではなく、テストの「配分」がピラミッドの形からズレていることが本質的な問題です。' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: 'testing-strategy',
+        title: '第2章: テスト戦略と自動化',
+        description: 'モック・スタブの使い分けと、CIによるテスト自動化の考え方。',
+        lessons: [
+          {
+            id: 'test-2-1',
+            title: 'モック・スタブとテストの自動化',
+            minutes: 25,
+            intro:
+              '外部APIやDBに依存したテストは、ネットワーク状況やデータの状態によって結果が変わってしまいます。モック・スタブはこの不安定さを解消する道具です。',
+            content: [
+              '**モック（Mock）** は「呼ばれたか・どう呼ばれたか」を検証できる偽物の関数・オブジェクトです。**スタブ（Stub）** は「決まった値を返すだけ」の単純な代役です。両者は厳密には役割が違いますが、実務では「外部依存の偽物」として広く「モック」と呼ばれることが多いです。',
+              '外部依存（DBアクセス・API通信・時刻取得など）をモック化する理由は、**テストの不安定さを解消** するためです。本物のAPIを呼ぶテストは、そのAPIが落ちているだけでテストが失敗してしまいます。',
+              '**CIでのテスト自動化**（インフラ・運用トラックのCI/CDと接続）により、pushするたびに全テストが自動実行されます。人が「テストを実行し忘れる」ことがなくなります。',
+              'テスト自動化は、**AI生成コードの検証を仕組み化する** 手段でもあります。AIが書いたコードが既存のテストを壊していないかを、人が毎回目視するのではなく自動でチェックできます。',
+            ],
+            points: [
+              'モックは検証可能な偽物、スタブは単純な代役',
+              '外部依存をモック化してテストの不安定さを解消',
+              'CIでのテスト自動化はAI生成コードの検証も仕組み化する',
+            ],
+            codingChallenge: {
+              prompt:
+                '指定したJSONデータを常に返す、テスト用の偽fetch関数を作る関数`createMockFetch`を実装してください。`createMockFetch(data)`を呼ぶと、`await mockFetch(url)`で`{ ok: true, json: async () => data }`を返す関数が得られます（urlの値は無視してよい）。',
+              functionName: 'createMockFetch',
+              signature: 'function createMockFetch(data)',
+              starterCode: `function createMockFetch(data) {
+  // data を常に返す async 関数を返す（url引数は無視してよい）
+
+}`,
+              tests: [
+                {
+                  description: 'jsonでdataが返る',
+                  script: `(async()=>{
+  const mockFetch = fn({ id: 1, name: '太郎' })
+  const res = await mockFetch('/api/user')
+  return JSON.stringify(await res.json())
+})()`,
+                  expected: '{"id":1,"name":"太郎"}',
+                },
+                {
+                  description: 'okがtrue',
+                  script: `(async()=>{
+  const mockFetch = fn({ ok: 'dummy' })
+  const res = await mockFetch('/anything')
+  return res.ok
+})()`,
+                  expected: 'true',
+                },
+                {
+                  description: '複数回呼んでも同じdataを返す',
+                  script: `(async()=>{
+  const mockFetch = fn([1,2,3])
+  const r1 = await (await mockFetch('/a')).json()
+  const r2 = await (await mockFetch('/b')).json()
+  return JSON.stringify(r1) === JSON.stringify(r2)
+})()`,
+                  expected: 'true',
+                },
+              ],
+              hints: [
+                'createMockFetch は「関数を返す関数」。返す関数は async にする',
+                '返す関数の中で { ok: true, json: async () => data } を返す',
+                'url引数は受け取るだけで使わなくてよい',
+              ],
+              solution: `function createMockFetch(data) {
+  return async function mockFetch(url) {
+    return {
+      ok: true,
+      json: async () => data,
+    }
+  }
+}`,
+            },
+          },
         ],
       },
     ],
