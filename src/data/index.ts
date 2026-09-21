@@ -9,6 +9,7 @@ import { httpTracks } from './tracks/http'
 import { testingTracks } from './tracks/testing'
 import { linuxDockerTracks } from './tracks/linux-docker'
 import { practiceTracks } from './tracks/practice'
+import { webSecurityTracks } from './tracks/web-security'
 import { aiDevTracks } from './tracks/ai-dev'
 import { dxScenarioTracks } from './tracks/dx-scenario'
 import { portfolioTracks } from './tracks/portfolio'
@@ -23,6 +24,7 @@ export const tracks: Track[] = [
   ...testingTracks,
   ...linuxDockerTracks,
   ...practiceTracks,
+  ...webSecurityTracks,
   ...aiDevTracks,
   ...portfolioTracks,
   ...businessTracks,

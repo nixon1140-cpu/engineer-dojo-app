@@ -183,6 +183,7 @@
         testing: 'test-',
         'linux-docker': 'ld-',
         practice: 'pr-',
+        'web-security': 'sec-',
         'ai-dev': 'aid-',
         'dx-scenario': 'dx-',
         portfolio: 'pf-',

@@ -22,6 +22,7 @@ const colorMap: Record<string, { text: string; bg: string; border: string }> = {
   cyan: { text: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'hover:border-cyan-400/60' },
   lime: { text: 'text-lime-400', bg: 'bg-lime-400/10', border: 'hover:border-lime-400/60' },
   fuchsia: { text: 'text-fuchsia-400', bg: 'bg-fuchsia-400/10', border: 'hover:border-fuchsia-400/60' },
+  red: { text: 'text-red-400', bg: 'bg-red-400/10', border: 'hover:border-red-400/60' },
 }
 
 export function getColor(color: string) {
