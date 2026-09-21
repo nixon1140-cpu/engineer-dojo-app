@@ -153,6 +153,7 @@
         git: 'git-',
         'http-api': 'http-',
         testing: 'test-',
+        'linux-docker': 'ld-',
         practice: 'pr-',
         'ai-dev': 'aid-',
         'dx-scenario': 'dx-',
