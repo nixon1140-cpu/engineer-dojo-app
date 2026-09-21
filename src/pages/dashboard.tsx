@@ -93,7 +93,7 @@ export const DashboardPage: FC = () => {
       <p id="progress-io-message" class="text-xs mb-8 hidden"></p>
 
       {/* 全体サマリー */}
-      <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-dojo-800 border border-dojo-700 rounded-xl p-5 text-center">
           <p class="text-3xl font-black text-amber-400" id="stat-lessons">0</p>
           <p class="text-xs text-gray-400 mt-1">完了レッスン / {lessonTotal}</p>
@@ -109,7 +109,7 @@ export const DashboardPage: FC = () => {
       </div>
 
       {/* スキルチェック統計 */}
-      <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-emerald-400/10 border border-emerald-400/30 rounded-xl p-4 text-center">
           <p class="text-2xl font-black text-emerald-400" id="stat-skill-ok">0</p>
           <p class="text-xs text-gray-400 mt-1">
@@ -131,7 +131,7 @@ export const DashboardPage: FC = () => {
       </div>
 
       {/* 学習時間・ストリーク */}
-      <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <div class="bg-dojo-800 border border-dojo-700 rounded-xl p-4 text-center">
           <p class="text-2xl font-black text-sky-400" id="stat-study-time">0<span class="text-base font-normal text-gray-400">分</span></p>
           <p class="text-xs text-gray-400 mt-1">

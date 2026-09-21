@@ -29,7 +29,7 @@ export const WeaknessMapPage: FC = () => {
       </p>
 
       {/* サマリーカード */}
-      <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         <div class="bg-emerald-400/10 border border-emerald-400/30 rounded-xl p-5 text-center">
           <p class="text-3xl font-black text-emerald-400" id="skill-achieved-count">0</p>
           <p class="text-xs text-gray-400 mt-1">達成（できる）</p>
