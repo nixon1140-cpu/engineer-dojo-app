@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import type { LessonLocation } from '../data'
 import { getColor } from './tracks'
+import { withBase } from '../base-path'
 
 // 簡易マークダウン変換: **太字**, `コード`
 // XSS防止のため、まずHTML特殊文字をエスケープしてから装飾タグを適用する
@@ -20,9 +21,9 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
   return (
     <div class="max-w-3xl mx-auto px-4 py-12">
       <nav class="text-sm text-gray-400 mb-6 flex flex-wrap gap-1">
-        <a href="/tracks" class="hover:text-amber-400 transition">カリキュラム</a>
+        <a href={withBase('/tracks')} class="hover:text-amber-400 transition">カリキュラム</a>
         <span class="mx-1">/</span>
-        <a href={`/tracks/${track.id}`} class="hover:text-amber-400 transition">{track.title}</a>
+        <a href={withBase(`/tracks/${track.id}`)} class="hover:text-amber-400 transition">{track.title}</a>
         <span class="mx-1">/</span>
         <span class="text-gray-500">{chapterTitle}</span>
       </nav>
@@ -314,7 +315,7 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
             <i class="fa-solid fa-check text-emerald-400 mr-1"></i>チェック結果を保存しました
           </p>
           <div class="mt-3">
-            <a href="/weakness-map" class="text-xs text-gray-500 hover:text-amber-400 transition">
+            <a href={withBase('/weakness-map')} class="text-xs text-gray-500 hover:text-amber-400 transition">
               <i class="fa-solid fa-map mr-1"></i>弱点マップで全体を確認する
             </a>
           </div>
@@ -329,12 +330,12 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
           </button>
           <div class="flex gap-3 text-sm">
             {prev && (
-              <a href={`/lessons/${prev.lessonId}`} class="text-gray-400 hover:text-amber-400 transition">
+              <a href={withBase(`/lessons/${prev.lessonId}`)} class="text-gray-400 hover:text-amber-400 transition">
                 <i class="fa-solid fa-arrow-left mr-1"></i>前のレッスン
               </a>
             )}
             {next && (
-              <a href={`/lessons/${next.lessonId}`} class="text-gray-400 hover:text-amber-400 transition">
+              <a href={withBase(`/lessons/${next.lessonId}`)} class="text-gray-400 hover:text-amber-400 transition">
                 次のレッスン<i class="fa-solid fa-arrow-right ml-1"></i>
               </a>
             )}

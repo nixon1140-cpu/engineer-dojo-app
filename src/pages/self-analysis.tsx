@@ -1,4 +1,5 @@
 import type { FC } from 'hono/jsx'
+import { withBase } from '../base-path'
 
 // 自己分析ワークシート — 3軸マップ（職能・業界・開発スキル）を書き出してlocalStorageに保存
 
@@ -6,7 +7,7 @@ export const SelfAnalysisPage: FC = () => {
   return (
     <div class="max-w-3xl mx-auto px-4 py-12">
       <div class="mb-8">
-        <a href="/tracks/career-strategy" class="text-sm text-gray-400 hover:text-amber-400 transition">
+        <a href={withBase('/tracks/career-strategy')} class="text-sm text-gray-400 hover:text-amber-400 transition">
           <i class="fa-solid fa-arrow-left mr-1"></i>キャリア戦略トラックへ
         </a>
       </div>
@@ -195,13 +196,13 @@ export const SelfAnalysisPage: FC = () => {
         </ul>
         <div class="mt-4 pt-4 border-t border-dojo-700 flex flex-wrap gap-3">
           <a
-            href="/tracks/career-strategy"
+            href={withBase('/tracks/career-strategy')}
             class="text-sm text-cyan-400 hover:underline"
           >
             <i class="fa-solid fa-compass mr-1"></i>キャリア戦略トラックに戻る
           </a>
           <a
-            href="/tracks/portfolio"
+            href={withBase('/tracks/portfolio')}
             class="text-sm text-amber-400 hover:underline"
           >
             <i class="fa-solid fa-folder-open mr-1"></i>ポートフォリオ制作トラックへ

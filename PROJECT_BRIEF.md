@@ -68,7 +68,7 @@ src/
 public/static/
 ├── app.js       ← 全インタラクション（1447行）
 ├── styles.css   ← 実際にrenderer.tsxから参照されている本体CSS
-└── style.css    ← renderer.tsxからは未参照（削除候補、13章参照）
+└── style.css    ← renderer.tsxからは未参照（削除候補、9-7参照）
 ```
 
 **★重要な訂正**: データファイルは12本だが、`tech.ts`が4個（frontend/backend/infrastructure/database）、`business.ts`が3個（marketing/management/sales）のTrackオブジェクトを1ファイルにまとめているため、**実際のトラック数（`tracks`配列の要素数）は17個**。ダッシュボードの進捗バーが17本表示されるのはこのため（以前のブリーフで「12トラックのはずが17本表示される」としていた不整合、および直前のドラフトで`tech.ts`を3個と誤記していた点はこれで解消）。
@@ -218,28 +218,229 @@ RUNTEQのスキルチェックリストとの突合の結果、Linux／コマン
   - コンテナ／Dockerイメージ／chmod／環境変数（内容例は当セクションの各レッスン説明を参照。「環境変数」は既存の用語と重複しないか確認し、重複する場合は既存側を活かして本レッスンからの追加はスキップする）
 - `README.md`の「17トラック／58レッスン／70語」等の静的記述を「18トラック／62レッスン／60語」に更新（3章参照。用語集の元の「70語」自体がREADME側の誤記だった点に注意）
 
-## 9. 改修時に必ず守る規約（既存コードのパターンを壊さないため）
+## 9. 【承認済み・第2ラウンド】RUNTEQ未充足4項目＋残ギャップ3点を全て解消
+
+8章までの実装（第1ラウンド）はGitHub上のmainに反映済み。「道場レビュー」で『十分』と判定されなかったRUNTEQ4項目（Webセキュリティ／インフラ・クラウド／デザイン・コーディング／テスト手法）と、残った小さなギャップ3点（薄い3トラック／UI・UXデザイン原則の欠如／モバイル全体監査）を、この第2ラウンドで全て解消する。
+
+### 9-1. 新規トラック: Webセキュリティ（RUNTEQ「Webセキュリティ」を独立トラック化）
+
+- **ファイル**: `src/data/tracks/web-security.ts`（新規）
+- **id**: `web-security` / **category**: `tech` / **icon**: `fa-shield-halved` / **color**: `red`（新規追加）
+- **title**: 「Webセキュリティの基礎」
+- **tagline**: 「なんとなく動くコードから、狙われても壊れないコードへ」
+- **outcomes**: 認証と認可を区別して設計できる／CSRF・セッション管理の基本を説明できる／OWASP的な視点でコードをレビューできる／秘密情報とAPIを安全に扱える
+- **配置**: `data/index.ts`で`practiceTracks`の後・`aiDevTracks`の前にspread（tech系トラック群の末尾）
+- **レッスンIDプレフィックス**: `sec-`
+
+**第1章: 認証・認可とセッション管理（chapter id: `security-auth`）**
+
+`sec-1-1`「認証(Authentication)と認可(Authorization)を区別する」（20分）
+- content: ①認証＝本人確認、認可＝権限確認の違い ②セッション管理・CookieのhttpOnly/secure属性 ③JWTの仕組みと失効の難しさ ④「認証だけ確認して認可を忘れる」事故パターン
+- quiz: 「ログイン済みユーザーがURLの投稿IDを書き換えて他人の投稿を削除できてしまった。何が抜けていたか」→正解「認可の確認」（誤答2種にwhy付き）
+
+`sec-1-2`「CSRF対策とHTTPS」（20分）
+- content: ①CSRFはCookieの自動送信を悪用する攻撃 ②CSRFトークンと`SameSite`Cookieの組み合わせが基本対策 ③HTTPSが必須である理由（盗聴・改ざん防止）④`secure`属性とCSRF対策はセットで考える
+- codeExercise: CSRFトークンの無い送金フォームを提示し問題点を問う→正解「意図しない送金を実行される危険がある（CSRF）」（誤答2種にwhy付き）
+
+**第2章: 実践的なセキュアコーディング（chapter id: `security-practice`）**
+
+`sec-2-1`「セキュリティレビューの視点（OWASP的な考え方）」（20分）
+- content: ①OWASP Top10という共通言語 ②パストラバーサル・安全でないデシリアライゼーションの概要 ③「入力→検証→利用」を辿るレビューの視点 ④完璧より「明らかに危険なパターンを見逃さない」現実的なゴール
+- quiz: 「`fs.readFile(userInput)`のようにユーザー入力をそのままファイルパスに使っている。最も警戒すべき攻撃は」→正解「パストラバーサル」（誤答2種にwhy付き）
+
+`sec-2-2`「秘密情報管理と安全なAPI設計」（25分）
+- content: ①秘密情報は環境変数で管理（Linux&Dockerトラックと接続）②レート制限の目的 ③サーバー側検証が必須な理由 ④最小権限の原則
+- codingChallenge: `isValidApiKeyFormat` — `sk_live_`/`sk_test_`+32文字英数字の形式を検証する関数（正規表現`/^(sk_live_|sk_test_)[a-zA-Z0-9]{32}$/`、starterCode/tests4件/hints/solution完備）
+
+### 9-2. 既存`infrastructure`トラックの拡充（RUNTEQ「インフラ・クラウド」を十分な水準に）
+
+`src/data/tracks/tech.ts`の`infrastructure`Trackに第3章を追加（既存3レッスン→6レッスンに拡充。「薄いトラック」の解消も兼ねる）。
+
+**第3章: クラウドの基礎（chapter id: `infra-cloud`）**
+
+`infra-3-1`「クラウドの基本概念（IaaS/PaaS/SaaS）」（20分）
+- content: ①IaaS/PaaS/SaaSの違い ②PaaS/SaaSの利点（スケーリング・トイル削減）③責任共有モデル ④このアプリ自体がCloudflare Pages/Workersで動いている実例
+- quiz: 「このアプリはCloudflare Pages/Workers上で動いている。どの分類に近いか」→正解「PaaS」（誤答2種にwhy付き）
+
+`infra-3-2`「主要クラウドサービスの使い分け」（20分）
+- content: ①サーバー型とサーバーレス型のコンピュート ②オブジェクトストレージとDBの違い ③CDNの役割 ④マネージドサービスとトイル削減
+- quiz: 「アクセスの少ない個人開発APIをコストを抑えて動かしたい」→正解「サーバーレス型」（誤答2種にwhy付き）
+
+`infra-3-3`「CI/CDの基礎」（20分）
+- content: ①CI（push毎の自動ビルド・テスト、今回の実装作業と同じ発想）②CD（テスト通過後の自動デプロイ）③パイプラインの流れ ④CI/CDがトイル削減の代表例である理由
+- codeExercise: 手動SSH+手動デプロイ運用を提示し問題点を問う→正解「手順が属人化し打ち忘れ・打ち間違いが起きやすい」（誤答2種にwhy付き）
+
+### 9-3. 既存`frontend`トラックの拡充（RUNTEQ「デザイン・コーディング」のデザイン面を追加）
+
+`src/data/tracks/tech.ts`の`frontend`Trackに第3章を追加（既存4レッスン→7レッスンに拡充）。
+
+**第3章: UI/UXデザインの基礎（chapter id: `fe-design`）**
+
+`fe-3-1`「配色・タイポグラフィ・余白の原則」（20分）
+- content: ①配色は「メイン+アクセント+グレースケール」の最小構成（この道場自体がdojo-900系+amber-400の実例）②見出しと本文のサイズ差で情報階層を伝える ③余白は情報を区切る道具 ④コントラスト比の目安（WCAG推奨4.5:1）
+- quiz: 「文字色#999999・背景色#FFFFFFの本文」→正解「コントラスト比が低く読みにくい」（誤答2種にwhy付き）
+
+`fe-3-2`「アクセシビリティの基礎」（20分）
+- content: ①アクセシビリティ(a11y)の考え方 ②alt属性・label要素・キーボード操作対応 ③色だけで情報を伝えない（道場のスキルチェックの◎/○/△+テキスト併用が好例）④一時的な制約も含めた全ユーザーの使いやすさ
+- quiz: 「`<img src="delete.png">`にaltが無い」→正解「スクリーンリーダー利用者に意味が伝わらない」（誤答2種にwhy付き）
+
+`fe-3-3`「一貫性のあるUIコンポーネント設計」（20分）
+- content: ①デザインシステムの考え方（`colorMap`もその一例）②コンポーネントの再利用性 ③ボタンの状態（通常/ホバー/押下/無効化）の視覚化 ④コンポーネント設計はUIとAPI設計の両面を持つ
+- codeExercise: 同じ「削除」ボタンが画面ごとに違う見た目で実装されている例を提示し問題点を問う→正解「一貫性の欠如」（誤答2種にwhy付き）
+
+### 9-4. 既存`testing`トラックの拡充（RUNTEQ「テスト手法」を十分な水準に）
+
+`src/data/tracks/testing.ts`に1レッスン追加＋新規第2章を追加（既存2レッスン→4レッスンに拡充）。
+
+`test-1-3`「結合テストとE2Eテスト」（20分、既存`testing-basics`章に追加）
+- content: ①テストピラミッド（単体→結合→E2E）②結合テストが確認する対象 ③E2Eテストを重要導線に絞る理由 ④「全部E2Eで書く」のアンチパターン
+- quiz: 「E2Eテストばかり増やして実行に30分以上かかるようになった」→正解「テストピラミッドが逆転している」（誤答2種にwhy付き）
+
+**第2章: テスト戦略と自動化（chapter id: `testing-strategy`）**
+
+`test-2-1`「モック・スタブとテストの自動化」（25分）
+- content: ①モックとスタブの違い ②外部依存をモック化する理由（テストの不安定さ解消）③CIでのテスト自動化（9-2のCI/CDと接続）④テスト自動化がAI生成コードの検証を仕組み化する
+- codingChallenge: `createMockFetch` — 指定したJSONを常に返す偽の`fetch`関数を作る（starterCode/tests/hints/solution完備）
+
+### 9-5. 既存`http-api`トラックの拡充（薄いトラックの解消）
+
+`src/data/tracks/http.ts`に1レッスン追加＋新規第2章を追加（既存2レッスン→4レッスンに拡充）。
+
+`http-1-3`「RESTfulなAPI設計の原則」（20分、既存`http-basics`章に追加）
+- content: ①URLはリソース、メソッドは操作 ②冪等性とHTTPメソッドごとの冪等性 ③ネストしたリソースは2階層程度に ④APIバージョニングの目的
+- quiz: 「決済APIが`POST /payments`で、ネットワーク不安定により同じリクエストが2回送られた」→正解「POSTは冪等でないため決済が2回実行される可能性がある」（誤答2種にwhy付き）
+
+**第2章: API認証と実践（chapter id: `http-auth`）**
+
+`http-2-1`「認証方式の使い分け」（20分）
+- content: ①APIキー（実装は簡単だが漏洩リスク）②OAuth（認可の委譲、セキュリティトラックと接続）③JWT（署名付きトークン）④用途による選び方の目安
+- quiz: 「『Googleでログイン』機能を追加したい」→正解「OAuth」（誤答2種にwhy付き）
+
+### 9-6. モバイル全体監査（実ファイル確認済み・修正箇所を特定済み）
+
+grep調査により、`md`/`sm`等のレスポンシブ切替クラスが無い固定`grid-cols-3`を4箇所発見（375px幅で3列に長い日本語ラベルが詰め込まれ窮屈になる）。以下の通り修正する。
+
+| ファイル | 行 | 現状 | 修正後 |
+|---|---|---|---|
+| `src/pages/dashboard.tsx` | 96 | `grid grid-cols-3 gap-4 mb-6`（全体サマリー） | `grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6` |
+| `src/pages/dashboard.tsx` | 112 | `grid grid-cols-3 gap-4 mb-6`（スキルチェック統計） | `grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6` |
+| `src/pages/dashboard.tsx` | 134 | `grid grid-cols-3 gap-4 mb-10`（学習時間・ストリーク） | `grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10` |
+| `src/pages/weakness-map.tsx` | 32 | `grid grid-cols-3 gap-4 mb-10`（サマリーカード） | `grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10` |
+
+`<table>`要素は全ページ中に存在せず、他ページの`overflow-x-auto`は既に適切に使われているため、上記4箇所以外の追加修正は不要（実ファイル確認済み）。修正後、375px幅で4ページ（`/dashboard`, `/weakness-map`）を実機確認すること。
+
+### 9-7. 実装時に追加で必要な変更（既存規約どおり・忘れると壊れる）
+
+- `src/data/index.ts`: `webSecurityTracks`をimportし、`practiceTracks`の後・`aiDevTracks`の前にspread
+- `src/pages/tracks.tsx`の`colorMap`: `red`エントリを新規追加（例: `{ text: 'text-red-400', bg: 'bg-red-400/10', border: 'hover:border-red-400/60' }`）
+- `public/static/app.js`の`prefixes`辞書: `'web-security': 'sec-'`を追加
+- `src/pages/glossary.tsx`: 用語集に8語追加（カテゴリは内容に応じて「技術」または「AI時代」）
+  - CSRF／JWT／IaaS・PaaS・SaaS／CI/CD／アクセシビリティ／モック／冪等性／OAuth（内容例は9-1〜9-5の各レッスン説明を参照。既存用語との重複は確認の上スキップ可）
+- `README.md`の「18トラック／62レッスン／60語」等の記述を「19トラック／76レッスン／68語」に更新
+- `public/static/style.css`を削除する（`src/`配下のどこからも参照されておらず、中身も`h1 { font-family: Arial... }`のみの死んだファイルであることを実ファイルで確認済み。実際に使われているのは`renderer.tsx`が参照する`styles.css`の方）
+
+### 9-8. 第2ラウンド後のコンテンツ規模（見込み値）
+
+| 項目 | 第1ラウンド後 | 第2ラウンド後 |
+|---|---|---|
+| トラック数 | 18 | 19 |
+| レッスン総数 | 62 | 76 |
+| 実践シナリオ数 | 15 | 15（変更なし） |
+| 用語集 | 60語 | 68語 |
+
+## 10. 改修時に必ず守る規約（既存コードのパターンを壊さないため）
 
 - **新トラック追加**: `src/data/tracks/{name}.ts`作成→`data/index.ts`にspread→`tracks.tsx`の`colorMap`に新色を静的追加→`app.js`の`prefixes`辞書に`trackId: 'prefix-'`を追加（忘れるとダッシュボードの進捗バーが壊れる）
 - **新シナリオ追加**: `scenarios.ts`配列末尾に追記。`Scenario`型の必須フィールドは`id/title/skill/difficulty/minutes/situation/steps/debrief`（`intro`ではなく`situation`。7章の修正後は全シナリオがこの型に統一される）
 - **新ページ追加**: `src/pages/{name}.tsx`作成→`src/index.tsx`にルート追加→`renderer.tsx`のナビに追加（モバイル幅注意）→`app.js`に対応セクション追記（IIFEで囲む）
 - **SSR→クライアントJSのデータ受け渡し**: data属性／`<script type="application/json">`／`id="scenario-data"`の3方式。`<`は`&lt;`にエスケープ済み（`lesson.tsx`/`scenarios.tsx`のmd()関数）。このパターンを壊さないこと
 
-## 10. ビルド・確認コマンド
+## 11. ビルド・確認コマンド
 
 ```bash
 git clone https://github.com/nixon1140-cpu/engineer-dojo-app.git
 cd engineer-dojo-app
 npm install
-npm run build            # 所要 ~700ms、dist/_worker.js 523.86kB(gzip 166.70kB)であることを確認
-npx tsc --noEmit          # 7章の型エラー修正後、0件になることを確認
+npm run build            # dist/_worker.jsのサイズを確認（第1ラウンド後538.01kB/gzip 171.46kB、第2ラウンドで増加見込み）
+npx tsc --noEmit          # 0件であることを確認
 ```
 
-## 11. 進め方（全て承認済み・今回ラウンドで実施）
+## 12. 進め方（第2ラウンド・全て承認済み）
 
-1. リポジトリをclone、`npm install && npm run build`で現状のビルドが通ることを確認
-2. 7章の型エラー9件（＋#10のcolorMap lime不足）を一括修正 → `tsc --noEmit`が0件になることを確認
-3. 8章のLinux & Dockerトラックを追加（8-1〜8-4）→ `tracks.length`が18、`totalLessonCount()`が62になることを確認
-4. 6章の3タスク（レスポンシブヘッダー／進捗エクスポート・インポート／textareaモバイル属性）を実装
-5. `README.md`の数値表記を更新（3章・8-4参照）
+1. リポジトリをclone（既に第1ラウンドの変更を含むmainブランチ）、`npm install && npm run build`で現状のビルドが通ることを確認
+2. 9-1のWebセキュリティトラックを新設 → `tracks.length`が19になることを確認
+3. 9-2〜9-5の既存4トラック拡充（infrastructure/frontend/testing/http-api）→ `totalLessonCount()`が76になることを確認
+4. 9-6のモバイル対応4箇所を修正 → 375px幅で`/dashboard`・`/weakness-map`を実機確認
+5. 9-7の関連ファイル変更（colorMap/prefixes/glossary/README）を漏れなく実施
+6. `npx tsc --noEmit`が0件、`npm run build`が正常に通ることを最終確認
+7. 各ステップ完了ごとにTomitaさんの確認を取ってから次に進み、区切りの良いところで`git add`→コミット（pushはTomitaさんの承認後）
 6. 各ステップ完了ごとにTomitaさんの確認を取ってから次に進み、区切りの良いところで`git add`→コミット（pushはTomitaさんの承認後）
+
+## 13. 【承認済み・第3ラウンド】GitHub Pagesへの静的サイト化（SSG化）
+
+### 13-1. 背景・目的
+
+公開先をCloudflare Pagesではなく**GitHub Pages**にする（新規アカウント登録を増やしたくないため。GitHubは既存アカウントで完結する）。GitHub Pagesは静的ファイルのみ配信するため、現状のHono SSR（Cloudflare Workers向け）構成を、**ビルド時に全ページを静的HTMLとして書き出す方式（SSG）**に変換する。
+
+このアプリは全ページがサーバー側の動的データ（DB・外部API・ユーザーセッション）を持たず、`src/data/tracks/*.ts`等の静的配列のみで構成されている（進捗はブラウザのlocalStorageのみ）ため、SSG化しても機能的な後退は無い想定。**既存のCloudflare向けSSR構成（`npm run dev`／`npm run build`／`wrangler`関連）は壊さず残す**（並行して両対応にする）。
+
+### 13-2. 実装内容（着手前に必ず実ファイルで確認すること。行番号・ファイル内容を断定しない）
+
+**a) 静的生成スクリプトの新設**（例: `scripts/generate-static.mts`）
+
+- Honoアプリの`app.request()`（または`app.fetch()`）を使い、ビルド時に全ルートを列挙してHTML文字列を取得し、ファイルに書き出す
+- 列挙すべきルート（`src/index.tsx`の`app.get`定義を実ファイルで確認の上、過不足なく列挙すること）:
+  - `/`、`/tracks`、`/scenarios`、`/dashboard`、`/glossary`、`/daily-quiz`、`/weakness-map`、`/self-analysis`
+  - `/tracks/:id` — `tracks`配列の全`id`分
+  - `/lessons/:id` — 全トラック×全チャプター×全レッスンの`lesson.id`分（`findLesson`等の既存ロジックを参考に列挙方法を作る）
+  - `/scenarios/:id` — `scenarios`配列の全`id`分
+  - `/api/curriculum` — 静的JSONとして書き出す（例: `api/curriculum.json`）
+- 出力先はディレクトリ形式（例: `/tracks/web-security` → `dist-pages/tracks/web-security/index.html`）とし、拡張子なしURLでアクセスできるようにする
+- `public/static/`配下の既存アセット（`app.js`等）を出力先にそのままコピーする
+
+**b) ベースパス対応（最重要・最も見落としやすい）**
+
+GitHub Pagesのプロジェクトサイトは`https://nixon1140-cpu.github.io/engineer-dojo-app/`のようにサブディレクトリ配信になる。現状のコードは`href="/tracks"`のようなルート絶対パスで書かれている可能性が高く、これらは全てサブディレクトリ配信では壊れる。
+
+- 着手前に必ず `grep -rn 'href="/\|src="/\|fetch("/\|from "/\|"/static/' src/ public/` を実行し、絶対ルートパス参照が実際に何箇所・どのファイルにあるか洗い出してから対応方針を決めること
+- 対応方法はViteの`base`設定（`vite.config.ts`の`base`オプション）を使う方法と、Hono側で共通のパスヘルパー関数を作り全リンク生成をそこに通す方法のどちらでもよいが、**どちらか一方の方式に統一**し、混在させないこと
+- 既存のCloudflare向けSSR構成（ベースパスが常に`/`のルート配信）には影響を与えないこと（SSG用ビルドとSSR用ビルドで環境変数等により出し分ける）
+
+**c) package.jsonへのスクリプト追加**
+
+- 既存の`dev`／`build`／`preview`／`deploy`（Cloudflare/wrangler用）はそのまま残す
+- 新規に静的生成込みのビルドコマンドを追加する（例: `"build:pages": "vite build && node scripts/generate-static.mjs"`）
+
+**d) GitHub Actionsワークフローの新設**（`.github/workflows/deploy-pages.yml`）
+
+- `main`ブランチへのpushをトリガーに、`npm install` → 静的生成ビルド実行 → 出力ディレクトリをGitHub Pagesへデプロイ
+- 公式の`actions/configure-pages`・`actions/upload-pages-artifact`・`actions/deploy-pages`の組み合わせを使うこと（サードパーティのデプロイActionは使わない）
+
+**e) 動作確認**
+
+- ローカルで静的生成ビルドを実行し、出力ディレクトリに全ページのHTMLが生成されていることを確認
+- `npx serve <出力ディレクトリ>`等でローカルの静的サーバーから確認し、内部リンク・画像・`app.js`の読み込みに404が無いことを確認（ベースパスを設定した場合は、そのサブパス構成を再現して確認すること）
+- 既存の`npm run dev`／`npm run build`／`npx tsc --noEmit`が今回の変更後も引き続き正常動作することを確認（Cloudflare向け構成への影響が無いこと）
+
+### 13-3. 受け入れ基準（Definition of Done）
+
+- 静的生成ビルドを実行すると、全ページが静的HTMLとして出力される
+- 出力されたHTMLをローカルの静的サーバーで確認し、内部リンク・画像・`app.js`読み込みが全て正常（404無し）
+- 既存の`npm run dev`／`npm run build`／`npx tsc --noEmit`が引き続き正常動作する（Cloudflare向け構成を壊していない）
+- `.github/workflows/deploy-pages.yml`が追加され、mainへのpushで自動ビルド・デプロイされる設定になっている
+- コミット済み・push未実施（pushはTomitaさんの承認後）
+
+### 13-4. Tomitaさん側の作業（Claude Codeでは実施不可）
+
+- リポジトリの GitHub上の Settings → Pages → Source を「GitHub Actions」に変更する（Web UI操作のため、Claude Codeでは代行できない）
+- 初回のpush・デプロイ後、実際に公開URL（`https://nixon1140-cpu.github.io/engineer-dojo-app/`）で表示・遷移を確認する
+
+### 13-5. 実装結果（実ファイル確認の上で決定した詳細）
+
+- **静的生成スクリプト**: `scripts/generate-static.mjs`（プレーンJSで実装。理由: `src/index.tsx`はNode ESMのネイティブ拡張子なし相対import解決に対応していないため、実行前にesbuildでNode向けに一時バンドルする方式を採用。TypeScriptの型チェックが不要な単純なビルドスクリプトのため`.mjs`とした）
+- **依存追加**: `esbuild`（既にVite経由でnode_modulesに存在していたバージョン`0.28.1`を明示的にdevDependenciesへ追加。Tomitaさん承認済み）
+- **ベースパス対応方式**: Hono側の共通パスヘルパー方式を採用（`src/base-path.ts`の`withBase()`）。理由: このコードベースはVite標準のHTML/アセットパイプラインを使わず、`href`はJSX内の文字列リテラルとして書かれているため、Viteの`base`設定だけでは自動的に書き換わらない。ビルド時定数`__BASE_PATH__`（esbuildの`define`で注入、通常ビルドでは未定義=空文字列）を介するため`vite.config.ts`は無改造で、既存Cloudflare向けビルドに一切影響しない。`public/static/app.js`内の3箇所の動的href生成のみ、`renderer.tsx`が埋め込む`window.__BASE_PATH__`をプレーンJSから参照する形で対応（Viteの処理が届かないプレーンJSファイルのため、同じ「ベースパスを一箇所から取得する」という考え方をランタイムで橋渡しする形。方式は統一）
+- **出力先**: `dist-pages/`（`.gitignore`に追加）
+- **ルート列挙方法**: `/api/curriculum`エンドポイントのレスポンス（`tracks[].lessons[]`・`scenarios[].id`）をそのまま使って`/tracks/:id`・`/lessons/:id`・`/scenarios/:id`を列挙。`findLesson`等と二重管理にならない
+- **404対応**: ブリーフに明記はないが、GitHub Pages運用の定石として`dist-pages/404.html`も生成（存在しないパスへのアクセス時にGitHub Pages側が自動的に返す仕組み）
+- **`build:pages`スクリプト**: `vite build`は前置せず`node scripts/generate-static.mjs`のみ（生成スクリプト自体がesbuildで独立にバンドルするため、Cloudflare向け`vite build`の実行は不要。実行するとdist/への副作用が生じるだけで静的生成には使われないため）

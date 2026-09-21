@@ -1,4 +1,5 @@
 import type { FC } from 'hono/jsx'
+import { withBase } from '../base-path'
 
 // 初学者がつまずきやすい用語を、カリキュラム内の登場頻度順に集約
 // term: 用語 / kana: 読み / category: 分野 / desc: 一言説明 / example: 具体例や関連レッスン
@@ -135,7 +136,7 @@ export const GlossaryPage: FC = () => {
           用語の意味が分かったら、レッスンで「手を動かして」定着させましょう。
         </p>
         <a
-          href="/tracks"
+          href={withBase('/tracks')}
           class="inline-block bg-amber-400 text-dojo-950 font-bold px-6 py-2 rounded-lg hover:bg-amber-300 transition text-sm"
         >
           <i class="fa-solid fa-book-open mr-2"></i>カリキュラムへ戻る

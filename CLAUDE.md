@@ -5,7 +5,7 @@
 # Project Tech Stack
 - Framework: **Hono 4 + TypeScript**（Next.jsではない）
 - Rendering: `hono/jsx-renderer` によるSSR（クライアントは`public/static/app.js`の素のJS、SPA不使用）
-- Deploy: Cloudflare Pages / Workers（`wrangler`）
+- Deploy: Cloudflare Pages / Workers（`wrangler`）に加え、GitHub Pages向けの静的サイト生成（SSG）を並行対応（`npm run build:pages`、詳細は`PROJECT_BRIEF.md` 13章）
 - Build: Vite + `@hono/vite-dev-server`
 - State: 全て`localStorage`（サーバー状態・外部API・DBなし）
 - Style: Tailwind CSS（CDN、JITビルド生成なし）／アイコンはFont Awesome
@@ -25,6 +25,8 @@
 6. **進捗のエクスポート/インポート（承認済みタスク）**：`/dashboard`に、`dojo-`プレフィックス一致の全localStorageキー（`dojo-progress-v1`/`dojo-skills-v1`/`dojo-daily-quiz-v1`/`dojo-reviews-v1`/`dojo-self-analysis-v1`）をJSONで書き出し・読み込みする機能を追加してください。
 7. **型エラーの解消（承認済みタスク）**：`npx tsc --noEmit`実行で検出される既存の型エラー（`PROJECT_BRIEF.md` 7章に一覧あり、`scenarios.ts`の`intro`→`situation`統一、`practice.ts`の`tagline`/`outcomes`欠落、`lesson.tsx`の`spellcheck`型不一致等）を修正し、`tsc --noEmit`が0件になることを確認してください。
 8. **新規トラック追加：Linux & Docker基礎（承認済みタスク）**：`PROJECT_BRIEF.md` 8章の設計どおり`src/data/tracks/linux-docker.ts`を新設し、`data/index.ts`へのspread・`tracks.tsx`の`colorMap`への`fuchsia`（および7章#10の`lime`）追加・`app.js`の`prefixes`辞書への`'linux-docker': 'ld-'`追加・`glossary.tsx`への用語追加まで、8-4に記載の関連箇所を漏れなく対応してください。
+9. **第2ラウンド：Webセキュリティ新設＋既存4トラック拡充＋モバイル監査（承認済みタスク）**：`PROJECT_BRIEF.md` 9章の設計どおり実施してください。`src/data/tracks/web-security.ts`新設（9-1）、`tech.ts`の`infrastructure`/`frontend`への第3章追加（9-2, 9-3）、`testing.ts`/`http.ts`への章・レッスン追加（9-4, 9-5）、`dashboard.tsx`/`weakness-map.tsx`の`grid-cols-3`を4箇所`grid-cols-1 sm:grid-cols-3`に修正（9-6）、`colorMap`への`red`追加・`prefixes`への`'web-security': 'sec-'`追加・`glossary.tsx`への8語追加・`README.md`更新（9-7）まで、漏れなく対応してください。
+10. **第3ラウンド：GitHub PagesへのSSG化（承認済みタスク）**：`PROJECT_BRIEF.md` 13章の設計どおり実施してください。既存のCloudflare向けSSR構成（`npm run dev`／`npm run build`／`wrangler`関連）は一切壊さず、`scripts/generate-static.mjs`による静的生成・`src/base-path.ts`の`withBase()`によるベースパス対応・`.github/workflows/deploy-pages.yml`を並行して追加してください。
 
 # Execution Rules
 - 無駄な会話、逆質問を省き、即座にファイルの作成・編集を実行してください。

@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import type { Scenario } from '../types'
 import { scenarios } from '../data'
+import { withBase } from '../base-path'
 
 export const ScenarioListPage: FC = () => {
   return (
@@ -19,7 +20,7 @@ export const ScenarioListPage: FC = () => {
       <div class="grid md:grid-cols-2 gap-5">
         {scenarios.map((s) => (
           <a
-            href={`/scenarios/${s.id}`}
+            href={withBase(`/scenarios/${s.id}`)}
             class="bg-dojo-800 border border-dojo-700 rounded-xl p-6 hover:border-amber-400/60 transition group block"
             data-scenario-card={s.id}
           >
@@ -43,7 +44,7 @@ export const ScenarioListPage: FC = () => {
 export const ScenarioPlayPage: FC<{ scenario: Scenario }> = ({ scenario }) => {
   return (
     <div class="max-w-3xl mx-auto px-4 py-12">
-      <a href="/scenarios" class="text-sm text-gray-400 hover:text-amber-400 transition">
+      <a href={withBase('/scenarios')} class="text-sm text-gray-400 hover:text-amber-400 transition">
         <i class="fa-solid fa-arrow-left mr-1"></i>シナリオ一覧へ
       </a>
 

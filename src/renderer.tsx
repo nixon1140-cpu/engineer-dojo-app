@@ -1,4 +1,5 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
+import { BASE_PATH, withBase } from './base-path'
 
 declare module 'hono' {
   interface ContextRenderer {
@@ -26,7 +27,7 @@ export const renderer = jsxRenderer(({ children, title }) => {
           rel="icon"
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⛩️</text></svg>"
         />
-        <link href="/static/styles.css" rel="stylesheet" />
+        <link href={withBase('/static/styles.css')} rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -51,27 +52,27 @@ export const renderer = jsxRenderer(({ children, title }) => {
       <body class="bg-dojo-950 text-gray-100 min-h-screen flex flex-col">
         <header class="border-b border-dojo-700 bg-dojo-900/80 backdrop-blur sticky top-0 z-50">
           <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2 font-bold text-lg hover:text-amber-400 transition">
+            <a href={withBase('/')} class="flex items-center gap-2 font-bold text-lg hover:text-amber-400 transition">
               <i class="fa-solid fa-torii-gate text-amber-400"></i>
               <span>一人前エンジニア道場</span>
             </a>
             <nav class="hidden md:flex items-center gap-3 text-sm">
-              <a href="/tracks" class="hover:text-amber-400 transition">
+              <a href={withBase('/tracks')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book-open mr-1"></i>カリキュラム
               </a>
-              <a href="/scenarios" class="hover:text-amber-400 transition">
+              <a href={withBase('/scenarios')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-user-ninja mr-1"></i>実践シナリオ
               </a>
-              <a href="/daily-quiz" class="hover:text-amber-400 transition">
+              <a href={withBase('/daily-quiz')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-calendar-day mr-1"></i>デイリークイズ
               </a>
-              <a href="/glossary" class="hover:text-amber-400 transition">
+              <a href={withBase('/glossary')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-book mr-1"></i>用語集
               </a>
-              <a href="/self-analysis" class="hover:text-amber-400 transition">
+              <a href={withBase('/self-analysis')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-map mr-1"></i>自己分析
               </a>
-              <a href="/dashboard" class="hover:text-amber-400 transition">
+              <a href={withBase('/dashboard')} class="hover:text-amber-400 transition">
                 <i class="fa-solid fa-chart-line mr-1"></i>進捗
               </a>
             </nav>
@@ -89,22 +90,22 @@ export const renderer = jsxRenderer(({ children, title }) => {
             id="mobile-nav"
             class="hidden md:hidden border-t border-dojo-700 bg-dojo-900 px-4 py-2 text-sm"
           >
-            <a href="/tracks" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/tracks')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-book-open mr-2 w-4 text-center"></i>カリキュラム
             </a>
-            <a href="/scenarios" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/scenarios')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-user-ninja mr-2 w-4 text-center"></i>実践シナリオ
             </a>
-            <a href="/daily-quiz" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/daily-quiz')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-calendar-day mr-2 w-4 text-center"></i>デイリークイズ
             </a>
-            <a href="/glossary" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/glossary')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-book mr-2 w-4 text-center"></i>用語集
             </a>
-            <a href="/self-analysis" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/self-analysis')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-map mr-2 w-4 text-center"></i>自己分析
             </a>
-            <a href="/dashboard" class="block py-2 hover:text-amber-400 transition">
+            <a href={withBase('/dashboard')} class="block py-2 hover:text-amber-400 transition">
               <i class="fa-solid fa-chart-line mr-2 w-4 text-center"></i>進捗
             </a>
           </nav>
@@ -121,7 +122,10 @@ export const renderer = jsxRenderer(({ children, title }) => {
             <p>進捗データはブラウザのローカルストレージに保存されます。</p>
           </div>
         </footer>
-        <script src="/static/app.js"></script>
+        <script
+          dangerouslySetInnerHTML={{ __html: `window.__BASE_PATH__ = ${JSON.stringify(BASE_PATH)};` }}
+        />
+        <script src={withBase('/static/app.js')}></script>
       </body>
     </html>
   )

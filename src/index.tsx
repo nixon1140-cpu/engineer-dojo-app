@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { renderer } from './renderer'
+import { withBase } from './base-path'
 import { tracks, scenarios, getTrack, getScenario, findLesson } from './data'
 import { HomePage } from './pages/home'
 import { TrackListPage, TrackDetailPage } from './pages/tracks'
@@ -80,7 +81,7 @@ app.notFound((c) => {
       <p class="text-6xl mb-6">⛩️</p>
       <h1 class="text-2xl font-bold mb-4">ページが見つかりません</h1>
       <p class="text-gray-400 mb-8">お探しのページは存在しないか、移動しました。</p>
-      <a href="/" class="text-amber-400 hover:underline">
+      <a href={withBase('/')} class="text-amber-400 hover:underline">
         <i class="fa-solid fa-arrow-left mr-1"></i>トップへ戻る
       </a>
     </div>,

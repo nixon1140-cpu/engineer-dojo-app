@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import type { Track } from '../types'
 import { tracks } from '../data'
+import { withBase } from '../base-path'
 
 const categoryLabel = {
   tech: { label: '技術トラック', icon: 'fa-code' },
@@ -67,7 +68,7 @@ const TrackCard: FC<{ track: Track }> = ({ track }) => {
   )
   return (
     <a
-      href={`/tracks/${track.id}`}
+      href={withBase(`/tracks/${track.id}`)}
       class={`block bg-dojo-800 border border-dojo-700 rounded-xl p-6 transition ${c.border}`}
       data-track-card={track.id}
     >
@@ -94,7 +95,7 @@ export const TrackDetailPage: FC<{ track: Track }> = ({ track }) => {
   const c = getColor(track.color)
   return (
     <div class="max-w-4xl mx-auto px-4 py-12">
-      <a href="/tracks" class="text-sm text-gray-400 hover:text-amber-400 transition">
+      <a href={withBase('/tracks')} class="text-sm text-gray-400 hover:text-amber-400 transition">
         <i class="fa-solid fa-arrow-left mr-1"></i>カリキュラム一覧へ
       </a>
 
@@ -132,7 +133,7 @@ export const TrackDetailPage: FC<{ track: Track }> = ({ track }) => {
               {ch.lessons.map((l) => (
                 <li>
                   <a
-                    href={`/lessons/${l.id}`}
+                    href={withBase(`/lessons/${l.id}`)}
                     class="flex items-center gap-4 px-6 py-4 hover:bg-dojo-800 transition group"
                   >
                     <span

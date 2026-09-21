@@ -1,5 +1,6 @@
 import type { FC } from 'hono/jsx'
 import { tracks, scenarios, totalLessonCount } from '../data'
+import { withBase } from '../base-path'
 
 const categoryLabel = {
   tech: { label: '技術トラック', icon: 'fa-code', desc: 'フロント・バック・インフラ・DB設計' },
@@ -39,13 +40,13 @@ export const HomePage: FC = () => {
           </p>
           <div class="flex flex-wrap justify-center gap-4">
             <a
-              href="/tracks"
+              href={withBase('/tracks')}
               class="bg-amber-400 text-dojo-950 font-bold px-8 py-3 rounded-lg hover:bg-amber-300 transition"
             >
               <i class="fa-solid fa-book-open mr-2"></i>カリキュラムを始める
             </a>
             <a
-              href="/scenarios"
+              href={withBase('/scenarios')}
               class="border border-dojo-700 px-8 py-3 rounded-lg hover:border-amber-400 hover:text-amber-400 transition"
             >
               <i class="fa-solid fa-user-ninja mr-2"></i>実践シナリオに挑む
@@ -77,7 +78,7 @@ export const HomePage: FC = () => {
                   .filter((t) => t.category === cat)
                   .map((t) => (
                     <li>
-                      <a href={`/tracks/${t.id}`} class="text-gray-300 hover:text-amber-400 transition">
+                      <a href={withBase(`/tracks/${t.id}`)} class="text-gray-300 hover:text-amber-400 transition">
                         <i class={`fa-solid ${t.icon} mr-2 text-gray-500`}></i>
                         {t.title}
                       </a>
@@ -101,7 +102,7 @@ export const HomePage: FC = () => {
           <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {scenarios.map((s) => (
               <a
-                href={`/scenarios/${s.id}`}
+                href={withBase(`/scenarios/${s.id}`)}
                 class="bg-dojo-800 border border-dojo-700 rounded-xl p-5 hover:border-amber-400/60 transition group"
               >
                 <div class="text-xs text-amber-400 mb-2">
@@ -213,13 +214,13 @@ export const HomePage: FC = () => {
         </p>
         <div class="flex flex-wrap justify-center gap-4 mt-6">
           <a
-            href="/tracks/beginner"
+            href={withBase('/tracks/beginner')}
             class="inline-block bg-amber-400 text-dojo-950 font-bold px-8 py-3 rounded-lg hover:bg-amber-300 transition text-sm"
           >
             <i class="fa-solid fa-seedling mr-2"></i>STEP 1: 入門トラックから始める
           </a>
           <a
-            href="/tracks/portfolio"
+            href={withBase('/tracks/portfolio')}
             class="inline-block border border-indigo-400/60 text-indigo-300 font-bold px-8 py-3 rounded-lg hover:bg-indigo-400/10 transition text-sm"
           >
             <i class="fa-solid fa-folder-open mr-2"></i>STEP 3: ポートフォリオ設計へ

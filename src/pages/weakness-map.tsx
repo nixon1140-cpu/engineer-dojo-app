@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import { tracks } from '../data'
 import { getColor } from './tracks'
+import { withBase } from '../base-path'
 
 export const WeaknessMapPage: FC = () => {
   // 全トラックの全レッスンのスキルユニット一覧を生成
@@ -89,7 +90,7 @@ export const WeaknessMapPage: FC = () => {
                     <div class="flex-1 min-w-0">
                       <p class="text-xs text-gray-500 mb-0.5">{l.chapterTitle}</p>
                       <a
-                        href={`/lessons/${l.lessonId}`}
+                        href={withBase(`/lessons/${l.lessonId}`)}
                         class="font-medium hover:text-amber-400 transition text-sm"
                       >
                         {l.lessonTitle}
@@ -113,7 +114,7 @@ export const WeaknessMapPage: FC = () => {
           各レッスンページでセルフチェックを記録して弱点を把握しましょう。
         </p>
         <a
-          href="/tracks"
+          href={withBase('/tracks')}
           class="inline-block bg-amber-400 text-dojo-950 font-bold px-6 py-2 rounded-lg hover:bg-amber-300 transition text-sm"
         >
           <i class="fa-solid fa-book-open mr-2"></i>カリキュラムへ

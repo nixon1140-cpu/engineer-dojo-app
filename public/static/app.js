@@ -3,6 +3,10 @@
 (function () {
   'use strict'
 
+  // GitHub Pages（サブディレクトリ配信）向けのベースパス。renderer.tsxが埋め込むwindow.__BASE_PATH__を参照。
+  // Cloudflare向け配信では未設定のため常に空文字列になり、既存の挙動には影響しない。
+  const BASE_PATH = window.__BASE_PATH__ || ''
+
   const LS_KEY = 'dojo-progress-v1'
 
   /* ========== 進捗ストア ========== */
@@ -805,9 +809,9 @@
       html +=
         '</ul></div>' +
         '<div class="flex flex-wrap justify-center gap-3">' +
-        '<a href="/scenarios/' + scenario.id + '" class="border border-dojo-700 px-6 py-2 rounded-lg text-sm hover:border-amber-400 transition"><i class="fa-solid fa-rotate-right mr-1"></i>もう一度挑戦</a>' +
-        '<a href="/scenarios" class="border border-dojo-700 px-6 py-2 rounded-lg text-sm hover:border-amber-400 transition"><i class="fa-solid fa-list mr-1"></i>シナリオ一覧</a>' +
-        '<a href="/dashboard" class="bg-amber-400 text-dojo-950 font-bold px-6 py-2 rounded-lg text-sm hover:bg-amber-300 transition"><i class="fa-solid fa-chart-line mr-1"></i>進捗を見る</a>' +
+        '<a href="' + BASE_PATH + '/scenarios/' + scenario.id + '" class="border border-dojo-700 px-6 py-2 rounded-lg text-sm hover:border-amber-400 transition"><i class="fa-solid fa-rotate-right mr-1"></i>もう一度挑戦</a>' +
+        '<a href="' + BASE_PATH + '/scenarios" class="border border-dojo-700 px-6 py-2 rounded-lg text-sm hover:border-amber-400 transition"><i class="fa-solid fa-list mr-1"></i>シナリオ一覧</a>' +
+        '<a href="' + BASE_PATH + '/dashboard" class="bg-amber-400 text-dojo-950 font-bold px-6 py-2 rounded-lg text-sm hover:bg-amber-300 transition"><i class="fa-solid fa-chart-line mr-1"></i>進捗を見る</a>' +
         '</div></div>'
 
       resultEl.innerHTML = html

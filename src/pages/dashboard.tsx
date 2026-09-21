@@ -1,6 +1,7 @@
 import type { FC } from 'hono/jsx'
 import { tracks, scenarios, totalLessonCount } from '../data'
 import { getColor } from './tracks'
+import { withBase } from '../base-path'
 
 // バッジ定義（8個）
 const BADGES = [
@@ -206,7 +207,7 @@ export const DashboardPage: FC = () => {
           const c = getColor(t.color)
           const count = t.chapters.reduce((s, ch) => s + ch.lessons.length, 0)
           return (
-            <a href={`/tracks/${t.id}`} class="block bg-dojo-800 border border-dojo-700 rounded-xl p-4 hover:border-amber-400/40 transition">
+            <a href={withBase(`/tracks/${t.id}`)} class="block bg-dojo-800 border border-dojo-700 rounded-xl p-4 hover:border-amber-400/40 transition">
               <div class="flex items-center gap-3 mb-2">
                 <i class={`fa-solid ${t.icon} ${c.text}`}></i>
                 <span class="font-medium">{t.title}</span>
@@ -228,7 +229,7 @@ export const DashboardPage: FC = () => {
       <h2 class="font-bold text-xl mb-4">実践シナリオの成績</h2>
       <div class="space-y-3">
         {scenarios.map((s) => (
-          <a href={`/scenarios/${s.id}`} class="flex items-center gap-4 bg-dojo-800 border border-dojo-700 rounded-xl p-4 hover:border-amber-400/40 transition">
+          <a href={withBase(`/scenarios/${s.id}`)} class="flex items-center gap-4 bg-dojo-800 border border-dojo-700 rounded-xl p-4 hover:border-amber-400/40 transition">
             <div class="flex-1 min-w-0">
               <p class="font-medium">{s.title}</p>
               <p class="text-xs text-gray-500">{s.skill}</p>
