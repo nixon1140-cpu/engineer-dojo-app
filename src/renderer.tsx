@@ -1,5 +1,11 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 
+declare module 'hono' {
+  interface ContextRenderer {
+    (content: any, props?: { title?: string }): any
+  }
+}
+
 export const renderer = jsxRenderer(({ children, title }) => {
   return (
     <html lang="ja">

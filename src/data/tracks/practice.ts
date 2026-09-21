@@ -9,8 +9,15 @@ export const practiceTracks: Track[] = [
     category: 'tech',
     color: 'rose',
     icon: 'fa-bug',
+    tagline: '壊れたコードを直す体験から「なぜそうなるか」を学ぶ',
     description:
       'バグ修正・DOM操作・非同期処理の3テーマで、現場で即使えるコーディングスキルを鍛える。壊れたコードを直す体験から「なぜそうなるか」を学ぶ。',
+    outcomes: [
+      'よくあるバグパターンを見つけて修正できる',
+      'DOM操作の基本を理解し画面を動的に更新できる',
+      '非同期処理(Promise・async/await)の流れを説明できる',
+      'エラーメッセージから原因を特定するデバッグの思考法が身についている',
+    ],
     chapters: [
       {
         id: 'practice-bugs',

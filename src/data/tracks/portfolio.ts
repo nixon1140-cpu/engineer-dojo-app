@@ -155,59 +155,31 @@ export const portfolioTracks: Track[] = [
               ],
             },
             sqlChallenge: {
-              prompt: `contactsテーブルから「未対応（pending）の問い合わせを、作成日時が古い順に3件取得する」SQLを書いてください。
-
-【テーブル定義】
-CREATE TABLE contacts (
+              prompt:
+                'contactsテーブルから「未対応（pending）の問い合わせを、作成日時が古い順に3件取得する」SQLを書いてください。',
+              schemaSql: `CREATE TABLE contacts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   body TEXT,
   status TEXT NOT NULL DEFAULT 'pending',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-【データ（5件）】
-INSERT INTO contacts (title, body, status, created_at) VALUES
+);`,
+              seedSql: `INSERT INTO contacts (title, body, status, created_at) VALUES
   ('パスワードを忘れた', 'ログインできません', 'pending', '2024-01-01 09:00:00'),
   ('請求書の送付先変更', '新住所に変えてほしい', 'done', '2024-01-02 10:00:00'),
   ('システムエラーが出る', 'エラーコード500', 'in_progress', '2024-01-03 11:00:00'),
   ('使い方が分からない', 'マニュアルを送ってください', 'pending', '2024-01-04 12:00:00'),
   ('データが消えた', '昨日入力したデータが消えた', 'pending', '2024-01-05 08:00:00');`,
-              schema: `CREATE TABLE contacts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  body TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-INSERT INTO contacts (title, body, status, created_at) VALUES
-  ('パスワードを忘れた', 'ログインできません', 'pending', '2024-01-01 09:00:00'),
-  ('請求書の送付先変更', '新住所に変えてほしい', 'done', '2024-01-02 10:00:00'),
-  ('システムエラーが出る', 'エラーコード500', 'in_progress', '2024-01-03 11:00:00'),
-  ('使い方が分からない', 'マニュアルを送ってください', 'pending', '2024-01-04 12:00:00'),
-  ('データが消えた', '昨日入力したデータが消えた', 'pending', '2024-01-05 08:00:00');`,
-              starterSql: `-- pending の問い合わせを、古い順に3件取得してください
-SELECT title, status, created_at
+              solutionSql: `SELECT title, status, created_at
 FROM contacts
-WHERE /* 条件 */
-ORDER BY /* 並び順 */
-LIMIT /* 件数 */;`,
-              expectedColumns: ['title', 'status', 'created_at'],
-              expectedRows: [
-                ['パスワードを忘れた', 'pending', '2024-01-01 09:00:00'],
-                ['使い方が分からない', 'pending', '2024-01-04 12:00:00'],
-                ['データが消えた', 'pending', '2024-01-05 08:00:00'],
-              ],
+WHERE status = 'pending'
+ORDER BY created_at ASC
+LIMIT 3;`,
               hints: [
                 "WHERE status = 'pending' でpendingだけに絞れます",
                 'ORDER BY created_at ASC で古い順（昇順）に並べられます',
                 'LIMIT 3 で最大3件に絞れます',
               ],
-              solution: `SELECT title, status, created_at
-FROM contacts
-WHERE status = 'pending'
-ORDER BY created_at ASC
-LIMIT 3;`,
             },
           },
 

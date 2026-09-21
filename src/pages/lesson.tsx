@@ -146,7 +146,7 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
 
             <textarea
               class="coding-editor w-full h-64 bg-dojo-950 border border-dojo-700 rounded-lg p-4 font-mono text-sm text-gray-100 leading-relaxed focus:border-amber-400/60 focus:outline-none resize-y"
-              spellcheck="false"
+              spellcheck={false}
             >{lesson.codingChallenge.starterCode}</textarea>
 
             <div class="flex flex-wrap items-center gap-3 mt-3">
@@ -222,7 +222,7 @@ export const LessonPage: FC<{ loc: LessonLocation }> = ({ loc }) => {
 
             <textarea
               class="sql-editor w-full h-40 bg-dojo-950 border border-dojo-700 rounded-lg p-4 font-mono text-sm text-gray-100 leading-relaxed focus:border-emerald-400/60 focus:outline-none resize-y"
-              spellcheck="false"
+              spellcheck={false}
               placeholder="SELECT ..."
             ></textarea>
 

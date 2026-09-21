@@ -20,6 +20,7 @@ const colorMap: Record<string, { text: string; bg: string; border: string }> = {
   rose: { text: 'text-rose-400', bg: 'bg-rose-400/10', border: 'hover:border-rose-400/60' },
   indigo: { text: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'hover:border-indigo-400/60' },
   cyan: { text: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'hover:border-cyan-400/60' },
+  lime: { text: 'text-lime-400', bg: 'bg-lime-400/10', border: 'hover:border-lime-400/60' },
 }
 
 export function getColor(color: string) {
