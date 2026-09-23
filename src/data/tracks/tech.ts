@@ -959,7 +959,7 @@ function canViewOrder(user, order) {
               '**PaaS（Platform as a Service）** は実行環境ごと提供され、コードをデプロイするだけで動きます（例: Cloudflare Pages/Workers、Heroku）。サーバー管理から解放される分、自由度は下がります。',
               '**SaaS（Software as a Service）** は完成されたソフトウェアをそのまま使う形態です（例: Gmail、Slack）。開発者ではなく利用者向けの分類です。',
               'この3つには **責任共有モデル** という考え方があります。クラウド事業者が「どこまで」を保証し、利用者が「どこから」を責任持つかの境界線で、IaaSに近いほど利用者の責任範囲が広がります。',
-              'PaaS/SaaSを使う利点は、スケーリングやサーバーの保守といった **トイル（繰り返しの定型作業）を削減** できることです。このアプリ自体もCloudflare Pages/Workers上で動いており、身近な実例です。',
+              'PaaS/SaaSを使う利点は、スケーリングやサーバーの保守といった **トイル（繰り返しの定型作業）を削減** できることです。個人開発や小規模チームほど、この恩恵は大きくなります。',
             ],
             points: [
               'IaaS=インフラ貸し、PaaS=実行環境ごと、SaaS=完成品',
@@ -967,11 +967,11 @@ function canViewOrder(user, order) {
               'PaaS/SaaSはスケーリング等のトイルを削減できる',
             ],
             quiz: {
-              question: 'このアプリはCloudflare Pages/Workers上で動いている。どの分類に近いか？',
-              hint: 'サーバーのOS設定やスケーリングの仕組みを自分で構築していますか？ それとも「コードをデプロイするだけ」で動いていますか？',
+              question: '「コードをデプロイするだけで実行環境やスケーリングまで提供され、サーバーのOS管理は不要」なサービスは、どの分類に近いか？',
+              hint: 'サーバーのOS設定やスケーリングの仕組みを自分で構築する必要がありますか？ それとも「コードをデプロイするだけ」で動きますか？',
               options: [
-                { text: 'IaaS', correct: false, why: 'IaaSであれば、サーバーのOSやミドルウェアの管理を自分で行う必要があります。Cloudflare Pages/Workersではそこまで管理していません。' },
-                { text: 'PaaS', correct: true, why: '正解！Cloudflare Pages/Workersはコードをデプロイするだけで実行環境・スケーリングが提供される、典型的なPaaSです。' },
+                { text: 'IaaS', correct: false, why: 'IaaSであれば、サーバーのOSやミドルウェアの管理を自分で行う必要があります。設問のサービスはそこまでの管理を求めていません。' },
+                { text: 'PaaS', correct: true, why: '正解！コードをデプロイするだけで実行環境・スケーリングが提供されるのが、典型的なPaaSの特徴です（例: Heroku、Cloudflare Pages/Workers等）。' },
                 { text: 'SaaS', correct: false, why: 'SaaSは完成されたソフトウェアを利用者として使う形態です。自分でコードを書いてデプロイしている時点でSaaSの利用とは異なります。' },
               ],
             },

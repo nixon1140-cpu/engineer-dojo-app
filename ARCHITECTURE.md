@@ -48,10 +48,10 @@
 ## 2. 技術スタック
 
 ```
-ランタイム:  Cloudflare Pages (Workers runtime)
+ランタイム:  Node.js（開発時: @hono/vite-dev-server/node）／本番: 静的HTML（GitHub Pages配信）
 フレームワーク: Hono 4.13.3
 テンプレート: hono/jsx-renderer (SSR JSX, SPA不使用)
-ビルド:     Vite 8.1.4 + @hono/vite-build/cloudflare-pages
+ビルド:     Vite 8.1.4（開発） + scripts/generate-static.mjs（本番: 静的サイト生成）
 型システム:  TypeScript
 CSS:        Tailwind CSS CDN（JIT動的生成、カスタムdojoカラー込み）
 アイコン:   Font Awesome 6.4.0 CDN
@@ -68,10 +68,11 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
   "hono": "^4.13.3"
 },
 "devDependencies": {
-  "@hono/vite-build": "^1.11.1",
+  "@hono/node-server": "^1.19.17",
   "@hono/vite-dev-server": "^0.26.1",
-  "vite": "^8.1.4",
-  "wrangler": "^4.110.0"
+  "esbuild": "^0.28.1",
+  "typescript": "^7.0.2",
+  "vite": "^8.1.4"
 }
 ```
 
@@ -117,7 +118,8 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
 │       ├── app.js         # フロントエンド共通JS（1447行）
 │       ├── styles.css     # カスタムCSS（renderer.tsxで参照）
 │       └── style.css      # ⚠️ 旧ファイル（未参照の可能性・要確認）
-├── wrangler.jsonc         # Cloudflare Pages設定
+├── scripts/
+│   └── generate-static.mjs # GitHub Pages向け静的サイト生成スクリプト
 ├── vite.config.ts         # Viteビルド設定
 ├── tsconfig.json          # TypeScript設定
 ├── package.json           # 依存関係・スクリプト
@@ -357,24 +359,25 @@ type Scenario = {
 
 ## 7. データフロー
 
-### 7-1. ビルド時（Vite）
+### 7-1. ビルド時（scripts/generate-static.mjs）
 
 ```
 TypeScriptソース（src/）
-    ↓ Vite + @hono/vite-build/cloudflare-pages
-    ↓ 全トラックデータを単一Workerバンドル（_worker.js）に静的包含
-dist/
-  ├── _worker.js       # 523.86 kB（全コンテンツ含む）
-  ├── _routes.json     # Cloudflare Pages ルーティングルール
+    ↓ esbuildでsrc/index.tsxをNode向けに一時バンドル
+    ↓ app.request()で全ルートのHTMLを取得
+dist-pages/
+  ├── */index.html     # 118ページ（ディレクトリ形式・拡張子なしURL）
+  ├── 404.html         # GitHub Pages標準の404ページ
+  ├── api/curriculum.json
   └── static/          # public/static/ のコピー
 ```
 
-### 7-2. リクエスト時（SSR）
+### 7-2. リクエスト時（開発時のSSR / npm run dev）
 
 ```
 ブラウザ GET /lessons/cs-1-1
     ↓
-Cloudflare Workers (_worker.js)
+Node.js（@hono/vite-dev-server/node）
     ↓ src/index.tsx の app.get('/lessons/:id')
     ↓ findLesson('cs-1-1') でレッスンデータ取得
     ↓ <LessonPage loc={loc} /> でJSXレンダリング
@@ -704,11 +707,10 @@ const colorMap = {
 
 新しい色を追加するときは `src/pages/tracks.tsx` の `colorMap` に必ず追記すること。
 
-### 12-2. Cloudflare Workers 制約
+### 12-2. ランタイムに関する注意
 
-- `fs` / `path` / `child_process` 等 Node.js API は使用不可
-- ファイルシステムへのアクセス不可（実行時）
-- `serveStatic` は `hono/cloudflare-workers` から import（`@hono/node-server` ではない）
+- `serveStatic` は `@hono/node-server/serve-static` から import する
+- 本番は`scripts/generate-static.mjs`によるビルド時の静的HTML生成のため、実行時にNode.js APIへ依存するコードを書かないよう注意する（生成スクリプト自体はesbuildでNode向けにバンドルされる）
 
 ### 12-3. IIFE 構造の維持
 
@@ -754,8 +756,8 @@ const colorMap = {
 ## 14. ビルドと確認コマンド
 
 ```bash
-# ビルド
-cd /home/user/webapp && npm run build
+# ビルド（GitHub Pages向け静的サイト生成）
+cd /home/user/webapp && npm run build:pages
 
 # ローカル開発サーバー起動（PM2経由）
 cd /home/user/webapp && pm2 start ecosystem.config.cjs
@@ -770,9 +772,6 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/tracks/career-strat
 
 # ログ確認（非ブロッキング）
 pm2 logs --nostream
-
-# Cloudflare Pages デプロイ
-cd /home/user/webapp && npm run deploy
 
 # Gitコミット
 cd /home/user/webapp && git add . && git commit -m "feat: 説明"

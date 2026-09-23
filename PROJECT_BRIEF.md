@@ -10,6 +10,8 @@ Gensparkのエージェントから最終的な「アーキテクチャ仕様書
 
 ## 1. 確定した技術スタック（`package.json`実物より）
 
+> **注**: 以下は初回handoff時点（Cloudflare Pages/Workers向け）のスナップショット。7章 Stage B（Cloudflare関連の完全撤去）以降の最新構成は13章末尾の実装結果を参照。
+
 ```json
 {
   "name": "webapp",
@@ -26,7 +28,7 @@ Gensparkのエージェントから最終的な「アーキテクチャ仕様書
 
 - **フレームワーク**: Hono 4.13.3 + TypeScript（Next.jsではない）
 - **レンダリング**: `hono/jsx-renderer` によるSSR（SPA不使用、クライアントは`public/static/app.js`の素のJS）
-- **デプロイ先**: Cloudflare Pages / Workers（`hono/cloudflare-workers`からのimportが必須）
+- **デプロイ先**: Cloudflare Pages / Workers（`hono/cloudflare-workers`からのimportが必須）※Stage B以降はGitHub Pages一本化・撤去済み
 - **状態管理**: サーバー状態・外部API一切なし。全て`localStorage`
 - **ビルド**: Vite 8.1.4 + `@hono/vite-build/cloudflare-pages`
 - **スタイル**: Tailwind CSS CDN（JITビルド時生成なし。動的クラス名`` `bg-${color}-400` ``は機能しないため、`colorMap`で全色を静的に列挙する方式を踏襲する）
@@ -378,6 +380,8 @@ npx tsc --noEmit          # 0件であることを確認
 
 ## 13. 【承認済み・第3ラウンド】GitHub Pagesへの静的サイト化（SSG化）
 
+> **注**: 本章で採用した「Cloudflare向けSSR構成を並行して保持する」方針は、後続の7章 Stage B（14章参照）でCloudflare関連が完全撤去されたことにより終了している。本章は当時の設計判断の記録として残す。
+
 ### 13-1. 背景・目的
 
 公開先をCloudflare Pagesではなく**GitHub Pages**にする（新規アカウント登録を増やしたくないため。GitHubは既存アカウントで完結する）。GitHub Pagesは静的ファイルのみ配信するため、現状のHono SSR（Cloudflare Workers向け）構成を、**ビルド時に全ページを静的HTMLとして書き出す方式（SSG）**に変換する。
@@ -444,3 +448,28 @@ GitHub Pagesのプロジェクトサイトは`https://nixon1140-cpu.github.io/en
 - **ルート列挙方法**: `/api/curriculum`エンドポイントのレスポンス（`tracks[].lessons[]`・`scenarios[].id`）をそのまま使って`/tracks/:id`・`/lessons/:id`・`/scenarios/:id`を列挙。`findLesson`等と二重管理にならない
 - **404対応**: ブリーフに明記はないが、GitHub Pages運用の定石として`dist-pages/404.html`も生成（存在しないパスへのアクセス時にGitHub Pages側が自動的に返す仕組み）
 - **`build:pages`スクリプト**: `vite build`は前置せず`node scripts/generate-static.mjs`のみ（生成スクリプト自体がesbuildで独立にバンドルするため、Cloudflare向け`vite build`の実行は不要。実行するとdist/への副作用が生じるだけで静的生成には使われないため）
+
+## 14. 【承認済み・7章 Stage B】Cloudflare関連の完全撤去
+
+GitHub Pages一本化に伴い、13章で「並行保持」としていたCloudflare Pages/Workers・wrangler関連の構成・依存・記述を完全に撤去した。
+
+### 14-1. 実装内容
+
+- `package.json`: `preview`／`deploy`／`cf-typegen`スクリプトを削除。`build`（旧Cloudflare向け）を削除し`build:pages`を唯一の本番ビルドとした。`dev`は`@hono/vite-dev-server/node`（Nodeアダプタ）に変更。`devDependencies`から`wrangler`・`@hono/vite-build`を削除し、`@hono/node-server`を明示的に追加
+- `vite.config.ts`: `@hono/vite-build/cloudflare-pages`のbuildプラグインと`@hono/vite-dev-server/cloudflare`アダプタを削除し、`@hono/vite-dev-server/node`アダプタに置き換え
+- `wrangler.jsonc`・`ecosystem.config.cjs`を削除
+- `src/index.tsx`: `serveStatic`のimportを`hono/cloudflare-workers`から`@hono/node-server/serve-static`に変更（配信ロジック・`root`オプションは変更なし）
+- `src/base-path.ts`: コメントのみ実態（Cloudflareではなくローカル開発時の挙動）に合わせて更新。ロジックは無変更
+- `README.md`: フレームワーク行・デプロイ節のCloudflare関連記述を削除
+- `ARCHITECTURE.md`・`CLAUDE.md`・本ファイル: Cloudflare/wrangler関連記述を削除・簡素化（歴史的な設計判断の記録として残す部分は注記を付けて維持）
+- `src/data/tracks/tech.ts`（`infra-3-1`レッスン）・`src/pages/glossary.tsx`（IaaS・PaaS・SaaS用語）: 「このアプリ自体がCloudflare Pages/Workersで動いている」という自己言及を削除し、一般的なPaaSの説明・設問に整理（レッスンID・トラック構成・選択肢の正誤構造は変更なし）
+- `src/data/tracks/portfolio.ts`（学生自身のポートフォリオのデプロイ先候補としてのCloudflare Pages+Workers言及）は対象外として変更していない
+- `.gitignore`: `.wrangler/`エントリを削除
+
+### 14-2. 動作確認
+
+- `npm install`でpackage-lock.jsonを更新
+- `npm run dev`でローカル起動確認（トップ・任意のレッスン・`/tracks/tech`・`/glossary`）
+- `npm run build:pages`が成功することを確認
+- `npx tsc --noEmit`が0件であることを確認
+- `grep -ril -i cloudflare .`（node_modules・dist・dist-pages・package-lock.json除く）で`src/data/tracks/portfolio.ts`以外に言及が残っていないことを確認

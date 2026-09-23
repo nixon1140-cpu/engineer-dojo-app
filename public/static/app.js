@@ -4,7 +4,7 @@
   'use strict'
 
   // GitHub Pages（サブディレクトリ配信）向けのベースパス。renderer.tsxが埋め込むwindow.__BASE_PATH__を参照。
-  // Cloudflare向け配信では未設定のため常に空文字列になり、既存の挙動には影響しない。
+  // ローカル開発時は未設定のため常に空文字列になり、既存の挙動には影響しない。
   const BASE_PATH = window.__BASE_PATH__ || ''
 
   const LS_KEY = 'dojo-progress-v1'

@@ -2,8 +2,7 @@
 //
 // src/index.tsx のHonoアプリをNode向けに一時バンドルし、app.request()で
 // 全ページのHTMLを取得してディレクトリ形式（拡張子なしURL）で書き出す。
-// Cloudflare向けのVite/wranglerビルド（npm run build等）とは完全に独立しており、
-// 既存のCloudflare向け構成には一切影響しない。
+// Viteの通常ビルド（npm run dev）とは完全に独立したesbuildベースの生成処理。
 import { build } from 'esbuild'
 import { mkdir, writeFile, cp, rm } from 'node:fs/promises'
 import path from 'node:path'

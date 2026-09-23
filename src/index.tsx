@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { serveStatic } from 'hono/cloudflare-workers'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { renderer } from './renderer'
 import { withBase } from './base-path'
 import { tracks, scenarios, getTrack, getScenario, findLesson } from './data'

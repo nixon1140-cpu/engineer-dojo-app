@@ -35,7 +35,7 @@ const terms: GlossaryTerm[] = [
   { term: '環境変数', kana: 'かんきょうへんすう', category: '技術', desc: 'OSやプロセスの実行環境に設定する変数。APIキーやパスワードをコードに直書きせず`.env`ファイル経由で渡すことで、コードを共有してもシークレットが漏れないようにする。' },
   { term: 'CSRF', kana: 'しーえすあーるえふ', category: '技術', desc: 'ログイン中のブラウザがCookieを自動送信する性質を悪用し、意図しない操作を実行させる攻撃。CSRFトークンと`SameSite`Cookieの組み合わせで対策する。' },
   { term: 'JWT', kana: 'じぇいだぶりゅーてぃー', category: '技術', desc: 'JSON Web Tokenの略。署名付きのトークンで改ざんを検出できる認証方式。サーバー側にセッション状態を持たない一方、発行済みトークンの個別失効が難しいという弱点がある。' },
-  { term: 'IaaS・PaaS・SaaS', kana: 'あいあーす・ぱーす・さーす', category: '技術', desc: 'クラウドサービスの分類。IaaSはインフラをそのまま貸す形態、PaaSは実行環境ごと提供、SaaSは完成したソフトウェアをそのまま使う形態。このアプリはCloudflare Pages/Workers上で動くPaaSの実例。' },
+  { term: 'IaaS・PaaS・SaaS', kana: 'あいあーす・ぱーす・さーす', category: '技術', desc: 'クラウドサービスの分類。IaaSはインフラをそのまま貸す形態、PaaSは実行環境ごと提供、SaaSは完成したソフトウェアをそのまま使う形態。Cloudflare Pages/WorkersやHerokuはPaaSの代表例。' },
   { term: 'CI/CD', kana: 'しーあいしーでぃー', category: '技術', desc: 'CI(継続的インテグレーション)はpush毎の自動ビルド・テスト、CD(継続的デリバリー/デプロイ)はテスト通過後の自動デプロイ。手動デプロイの属人化やミスを防ぐ。' },
   { term: 'アクセシビリティ', kana: 'あくせしびりてぃ', category: '技術', desc: '視覚・聴覚・運動機能などに制約があるユーザーも含めて誰もが使えるようにする設計思想(a11y)。alt属性・label要素・キーボード操作対応、色だけに頼らない情報伝達などが基本。' },
   { term: 'モック', kana: 'もっく', category: '技術', desc: 'テストで外部依存(DBアクセス・API通信・時刻取得など)を置き換える偽物のオブジェクト・関数。本物に依存しないことでテストが安定し、CIでの自動実行もしやすくなる。' },
