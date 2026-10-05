@@ -1,8 +1,8 @@
 # 一人前エンジニア道場 — アーキテクチャ仕様書・設計書
 
 > **対象読者**: Claude Code など AI コーディングアシスタント  
-> **バージョン**: フェーズ4完了版（コミット `ce13780`）  
-> **最終更新**: 2026-09-21
+> **バージョン**: 第3ラウンド＋Stage B完了版（コミット `934cd58`）  
+> **最終更新**: 2026-10-06
 
 ---
 
@@ -32,16 +32,16 @@
 **コンセプト**: AI時代に「一人称で活躍する」ためのエンジニア学習プラットフォーム。技術×ビジネス×AI時代の判断力を体系的に身につける。  
 **URL構造**: 静的SSR + クライアントJSの純粋なサーバーレス構成。外部API・データベース不使用。
 
-### 現在のコンテンツ規模（フェーズ4）
+### 現在のコンテンツ規模（第3ラウンド＋Stage B完了時点）
 
 | 指標 | 数値 |
 |------|------|
-| トラック数 | 12 |
-| 総レッスン数 | 58 |
+| トラック数 | 19 |
+| 総レッスン数 | 76 |
 | 実践シナリオ数 | 15 |
-| 用語集エントリ数 | 70 |
+| 用語集エントリ数 | 68 |
 | localStorageキー数 | 5 |
-| ビルドサイズ | 523.86 kB（gzip: 166.70 kB） |
+| 公開用ビルド出力 | `dist-pages/`（118ページ + 404.html + api/curriculum.json、計122ファイル・約2.2MB） |
 
 ---
 
@@ -89,40 +89,45 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
 │   ├── data/
 │   │   ├── index.ts           # tracks[] の集約・エクスポート・ユーティリティ関数
 │   │   ├── scenarios.ts       # 実践シナリオ15本（Scenario[]）
-│   │   ├── daily-quiz-pool.ts # デイリークイズ問題プール（~40問）
+│   │   ├── daily-quiz-pool.ts # デイリークイズ問題プール（57問）
 │   │   └── tracks/
 │   │       ├── beginner.ts        # プログラミング基礎（入門）- 4レッスン
-│   │       ├── tech.ts            # フロントエンド/バックエンド/インフラ - 19レッスン
+│   │       ├── tech.ts            # フロントエンド(7)/バックエンド(4)/インフラ(6)/DB設計(8) - 計25レッスン
 │   │       ├── git.ts             # バージョン管理とGit - 3レッスン
-│   │       ├── http.ts            # HTTPとAPI基礎 - 2レッスン
-│   │       ├── testing.ts         # テストと品質 - 2レッスン
+│   │       ├── http.ts            # HTTPとAPI基礎 - 4レッスン
+│   │       ├── testing.ts         # テストと品質 - 4レッスン
+│   │       ├── linux-docker.ts    # 開発環境とインフラ基礎（Linux・Docker）- 4レッスン
 │   │       ├── practice.ts        # 実務型コーディング演習 - 5レッスン
+│   │       ├── web-security.ts    # Webセキュリティの基礎 - 4レッスン
 │   │       ├── ai-dev.ts          # AI活用開発演習 - 3レッスン
 │   │       ├── portfolio.ts       # ポートフォリオ制作演習 - 4レッスン
-│   │       ├── business.ts        # マーケティング視点 - 6レッスン
+│   │       ├── business.ts        # マーケティング(2)/経営(2)/営業(2) - 計6レッスン
 │   │       ├── dx-scenario.ts     # DX改善シナリオ演習 - 3レッスン
 │   │       ├── ai-era.ts          # AI時代のエンジニアリング - 4レッスン
-│   │       └── career-strategy.ts # AI時代のキャリア戦略 - 3レッスン ★フェーズ4新規
+│   │       └── career-strategy.ts # AI時代のキャリア戦略 - 3レッスン
+│   ├── base-path.ts           # withBase()：GitHub Pagesのサブパス対応
 │   └── pages/
 │       ├── home.tsx           # トップページ（ロードマップ・統計）
 │       ├── tracks.tsx         # カリキュラム一覧・詳細ページ共用
 │       ├── lesson.tsx         # レッスンページ（全演習UIをSSRで描画）
 │       ├── scenarios.tsx      # シナリオ一覧・プレイページ共用
-│       ├── dashboard.tsx      # 学習進捗・バッジ・統計
-│       ├── glossary.tsx       # 用語集（70語）
+│       ├── dashboard.tsx      # 学習進捗・バッジ・統計・進捗エクスポート/インポート
+│       ├── glossary.tsx       # 用語集（68語）
 │       ├── daily-quiz.tsx     # デイリークイズ（空シェル）
 │       ├── weakness-map.tsx   # 弱点マップ（スキルチェックリスト）
-│       └── self-analysis.tsx  # 自己分析ワークシート ★フェーズ4新規
+│       └── self-analysis.tsx  # 自己分析ワークシート
 ├── public/
 │   └── static/
-│       ├── app.js         # フロントエンド共通JS（1447行）
-│       ├── styles.css     # カスタムCSS（renderer.tsxで参照）
-│       └── style.css      # ⚠️ 旧ファイル（未参照の可能性・要確認）
+│       ├── app.js         # フロントエンド共通JS（1553行）
+│       └── styles.css     # カスタムCSS（renderer.tsxで参照）
+├── .github/workflows/
+│   └── deploy-pages.yml   # mainへのpushでGitHub Pagesへ自動デプロイ
 ├── scripts/
 │   └── generate-static.mjs # GitHub Pages向け静的サイト生成スクリプト
 ├── vite.config.ts         # Viteビルド設定
 ├── tsconfig.json          # TypeScript設定
-├── package.json           # 依存関係・スクリプト
+├── package.json           # 依存関係・スクリプト（dev / build:pages）
+├── docs/progress.md       # 作業の進み具合
 ├── README.md              # ユーザー向けドキュメント
 └── ARCHITECTURE.md        # 本ファイル（Claude Code向け設計書）
 ```
@@ -131,7 +136,7 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
 
 ## 4. ルーティング一覧
 
-`src/index.tsx` で定義。全ルートはSSRで静的HTMLを返す。
+`src/index.tsx` で定義。開発時（`npm run dev`）はSSRで返し、公開時は`scripts/generate-static.mjs`が全ルートを静的HTMLとして書き出す。
 
 | メソッド | パス | コンポーネント | 説明 |
 |---------|------|---------------|------|
@@ -154,22 +159,29 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
 
 ## 5. コンテンツアーキテクチャ
 
-### 5-1. トラック構成（全12トラック）
+### 5-1. トラック構成（全19トラック）
 
 | # | トラックID | タイトル | カテゴリ | カラー | レッスン数 |
 |---|-----------|----------|---------|--------|----------|
 | 1 | `beginner` | プログラミング基礎（入門） | tech | lime | 4 |
-| 2 | `frontend` | フロントエンド開発 | tech | sky | 19 |
-| 3 | `git` | バージョン管理とGit | tech | orange | 3 |
-| 4 | `http-api` | HTTPとAPI基礎 | tech | sky | 2 |
-| 5 | `testing` | テストと品質 | tech | teal | 2 |
-| 6 | `practice` | 実務型コーディング演習 | tech | rose | 5 |
-| 7 | `ai-dev` | AI活用開発演習 | tech | violet | 3 |
-| 8 | `portfolio` | ポートフォリオ制作演習 | tech | indigo | 4 |
-| 9 | `marketing` | マーケティング視点 | business | pink | 6 |
-| 10 | `dx-scenario` | DX改善シナリオ演習 | business | teal | 3 |
-| 11 | `ai-engineering` | AI時代のエンジニアリング | ai | violet | 4 |
-| 12 | `career-strategy` | AI時代のキャリア戦略 | ai | cyan | 3 |
+| 2 | `frontend` | フロントエンド開発 | tech | sky | 7 |
+| 3 | `backend` | バックエンド開発 | tech | emerald | 4 |
+| 4 | `infrastructure` | インフラ・運用 | tech | orange | 6 |
+| 5 | `database` | データベース設計 | tech | purple | 8 |
+| 6 | `git` | バージョン管理とGit | tech | orange | 3 |
+| 7 | `http-api` | HTTPとAPI基礎 | tech | sky | 4 |
+| 8 | `testing` | テストと品質 | tech | teal | 4 |
+| 9 | `linux-docker` | 開発環境とインフラ基礎（Linux・Docker） | tech | fuchsia | 4 |
+| 10 | `practice` | 実務型コーディング演習 | tech | rose | 5 |
+| 11 | `web-security` | Webセキュリティの基礎 | tech | red | 4 |
+| 12 | `ai-dev` | AI活用開発演習 | tech | violet | 3 |
+| 13 | `portfolio` | ポートフォリオ制作演習 | tech | indigo | 4 |
+| 14 | `marketing` | マーケティング視点 | business | pink | 2 |
+| 15 | `management` | 経営視点 | business | amber | 2 |
+| 16 | `sales` | 営業視点 | business | teal | 2 |
+| 17 | `dx-scenario` | DX改善シナリオ演習 | business | teal | 3 |
+| 18 | `ai-engineering` | AI時代のエンジニアリング | ai | violet | 4 |
+| 19 | `career-strategy` | AI時代のキャリア戦略 | ai | cyan | 3 |
 
 **カテゴリ**: `tech` / `business` / `ai`（`TrackCategory` 型）
 
@@ -188,22 +200,25 @@ SQL演習:    sql.js 1.10.2 WASM（CDN動的ロード）
 
 ```javascript
 const prefixes = {
-  'beginner':        'bg-',
-  'frontend':        'fe-',
-  'backend':         'be-',
-  'infrastructure':  'infra-',
-  'git':             'git-',
-  'http-api':        'http-',
-  'testing':         'test-',
-  'practice':        'pr-',
-  'marketing':       'mkt-',
-  'management':      'mgmt-',
-  'sales':           'sales-',
-  'ai-engineering':  'ai-',
-  'ai-dev':          'aid-',
-  'dx-scenario':     'dx-',
-  'portfolio':       'pf-',
-  'career-strategy': 'cs-',  // ★フェーズ4追加
+  beginner: 'bg-',
+  frontend: 'fe-',
+  backend: 'be-',
+  infrastructure: 'infra-',
+  database: 'db-',
+  git: 'git-',
+  'http-api': 'http-',
+  testing: 'test-',
+  'linux-docker': 'ld-',
+  practice: 'pr-',
+  'web-security': 'sec-',
+  'ai-dev': 'aid-',
+  'dx-scenario': 'dx-',
+  portfolio: 'pf-',
+  marketing: 'mkt-',
+  management: 'mgmt-',
+  sales: 'sales-',
+  'ai-engineering': 'ai-',
+  'career-strategy': 'cs-',
 }
 ```
 
@@ -212,25 +227,33 @@ const prefixes = {
 | # | シナリオID | タイトル | 難易度 | 時間 |
 |---|-----------|----------|--------|------|
 | 1 | `read-others-code` | 初日のコードリーディング | 1 | 10分 |
-| 2 | `understand-requirements` | 要件が曖昧なタスクの整理 | 2 | 10分 |
-| 3 | `follow-team-rules` | チームのルールを把握する | 1 | 10分 |
-| 4 | `receive-review` | コードレビューを受け取る | 2 | 10分 |
-| 5 | `negotiate-fix` | 修正交渉 | 2 | 10分 |
-| 6 | `deadline-quality` | 納期vs品質のトレードオフ | 3 | 15分 |
-| 7 | `safe-production-change` | 本番環境での安全な変更 | 2 | 10分 |
-| 8 | `unchangeable-tech` | 変えられない技術スタック | 2 | 10分 |
-| 9 | `incident-triage` | インシデントトリアージ | 3 | 15分 |
-| 10 | `code-review` | コードレビューを行う | 2 | 10分 |
-| 11 | `asking-questions` | 質問の仕方 | 1 | 10分 |
-| 12 | `interview-intro` | 面接：自己紹介 | 2 | 15分 |
-| 13 | `tech-interview` | 面接：技術質問 | 2 | 15分 |
-| 14 | `reverse-questions` | 面接：逆質問 | 2 | 15分 |
+| 2 | `understand-requirements` | ふわっとした要件の翻訳 | 2 | 12分 |
+| 3 | `follow-team-rules` | チームのルールと自分の流儀 | 1 | 10分 |
+| 4 | `receive-review` | はじめてのコードレビュー | 2 | 12分 |
+| 5 | `negotiate-fix` | 指摘への対応方針を調整する | 3 | 12分 |
+| 6 | `deadline-quality` | バグ修正の優先順位づけ | 3 | 12分 |
+| 7 | `safe-production-change` | 本番環境の緊急パッチ | 3 | 15分 |
+| 8 | `unchangeable-tech` | 選べない技術との闘い | 2 | 10分 |
+| 9 | `incident-triage` | 障害報告を受けたときの切り分け | 2 | 15分 |
+| 10 | `code-review` | コードレビューを受ける／する | 2 | 12分 |
+| 11 | `asking-questions` | 質問の切り分け | 1 | 12分 |
+| 12 | `interview-intro` | 面接での自己紹介と志望動機 | 2 | 15分 |
+| 13 | `tech-interview` | 技術面談での基礎質問 | 2 | 20分 |
+| 14 | `reverse-questions` | 逆質問（面接で聞くべき質問） | 1 | 10分 |
 | 15 | `domain-dx-proposal` | ドメインを活かしたDX改善提案 | 2 | 15分 |
 
-### 5-4. 用語集（70語）
+### 5-4. 用語集（68語）
 
 | カテゴリ | 語数 | 代表的な用語 |
 |---------|------|------------|
+| 基礎 | 7語 | 変数・関数・条件分岐・配列・デバッグ等 |
+| 技術 | 18語 | API・ORM・N+1問題・コンテナ・CSRF・JWT・CI/CD・OAuth等 |
+| DB | 6語 | トランザクション・正規化・インデックス等 |
+| Git | 8語 | コミット・ブランチ・マージ・stash等 |
+| ビジネス | 11語 | 要件定義・KPI・DX・技術的負債等 |
+| AI時代 | 18語 | LLM・RAG・ハルシネーション・T型人材・ドメイン知識等 |
+
+---------|------|------------|
 | 基礎 | 約8語 | 変数・関数・条件分岐・配列・デバッグ等 |
 | 技術 | 約10語 | フロントエンド/バックエンド・ORM・N+1問題等 |
 | DB | 約6語 | トランザクション・正規化・インデックス等 |
@@ -440,64 +463,69 @@ window.Dojo.reset()                    // 全データリセット（確認ダ�
 
 ## 9. app.js セクション構造
 
-`public/static/app.js`（1447行）は単一ファイル。全体が即時実行関数（IIFE）で囲まれ、各サブ機能もIIFEで独立。
+`public/static/app.js`（1553行）は単一ファイル。全体が即時実行関数（IIFE）で囲まれ、各サブ機能もIIFEで独立。
 
 ```
-(function () {   // ← 外側IIFE（行1）
+(function () {   // ← 外側IIFE（行3）
   'use strict'
+  // BASE_PATH = window.__BASE_PATH__ || ''（GitHub Pagesのサブパス対応。renderer.tsxが埋め込む）
 
-  /* ===== 進捗ストア（行6） ===== */
+  /* ===== 進捗ストア（行12） ===== */
   // LS_KEY = 'dojo-progress-v1'
   // loadProgress / saveProgress / window.Dojo
 
-  /* ===== クイズ（行48） ===== */
+  /* ===== モバイルナビゲーション（行54） ===== */
+  // #nav-toggle-btn / #mobile-nav のハンバーガーメニュー開閉
+
+  /* ===== クイズ（行82） ===== */
   // .quiz-block への click ハンドラ
   // 選択肢UI更新・正誤判定・Dojo.recordQuiz()
 
-  /* ===== レッスン完了ボタン（行102） ===== */
+  /* ===== レッスン完了ボタン（行133） ===== */
   // #lesson-complete-btn
   // 完了記録・次レッスンへの遷移
 
-  /* ===== ダッシュボード（行148） ===== */
-  // #dashboard-root 存在チェック
+  /* ===== ダッシュボード（行165） ===== */
+  // #stat-lessons 存在チェック
+  // 進捗エクスポート/インポート（dojo-プレフィックスの全キーをJSON入出力）
   // 統計カウント（完了レッスン・スコア・時間・ストリーク）
   // 活動履歴（直近30日・バーグラフ）
   // バッジ判定・表示
   // トラック別進捗バー
   // シナリオ成績表示
 
-  /* ===== シナリオエンジン（行582） ===== */
+  /* ===== シナリオエンジン（行687） ===== */
   // #scenario-root 存在チェック
   // script#scenario-data のJSONパース
   // ステップレンダリング・選択肢UI・スコア計算
   // デブリーフ表示・Dojo.recordScenario()
 
-  /* ===== スキルチェックリスト（行720） ===== */
+  /* ===== スキルチェックリスト（行825） ===== */
   // SKILLS_KEY = 'dojo-skills-v1'
   // .skill-checkbox への change ハンドラ
   // /weakness-map ページの弱点バッジ更新
 
-  /* ===== 弱点マップ（行785） ===== */
+  /* ===== 弱点マップ（行825付近・スキルチェックリストと同一セクション） ===== */
   // #weakness-map-content 存在チェック
   // スキルデータを読み込んで .skill-map-item にバッジ追加
 
-  /* ===== デイリークイズ（行870） ===== */
+  /* ===== デイリークイズ（行975） ===== */
   // DAILY_KEY / REVIEWS_KEY
   // script#daily-quiz-pool-data のJSONパース
   // 問題表示・採点・ストリーク管理・スペースドリピティション
 
-  /* ===== コーディング演習（行1095） ===== */
+  /* ===== コーディング演習（行437） ===== */
   // .coding-challenge-block への対応
   // Web Worker でユーザーコードをサンドボックス実行（5秒タイムアウト）
   // テスト結果表示・Dojo.recordQuiz()
 
-  /* ===== SQL演習（行1167） ===== */
+  /* ===== SQL演習（行1272） ===== */
   // SQLJS_CDN = 'https://cdnjs.cloudflare.com/...'
   // sql.js WASM を動的ロード（Promise化・キャッシュ）
   // .sql-challenge-block へのクエリ実行
   // solutionSql との結果比較で採点
 
-  /* ===== 自己分析ワークシート（行1357） ===== */
+  /* ===== 自己分析ワークシート（行1463） ===== */
   ;(function () {
     // /self-analysis ページのみ動作（ws-occupation/industry/skills/summaryの存在チェック）
     // WS_KEY = 'dojo-self-analysis-v1'
@@ -505,7 +533,7 @@ window.Dojo.reset()                    // 全データリセット（確認ダ�
     // 保存ボタン・クリアボタン（confirm付き）・1.5秒デバウンス自動保存
   })()
 
-})()`     // ← 外側IIFE閉じ（行1447）
+})()`     // ← 外側IIFE閉じ（行1553）
 ```
 
 ---
@@ -746,6 +774,12 @@ const colorMap = {
 
 | 優先度 | ファイル | 問題 | 修正方法 |
 |--------|---------|------|---------|
+| 低 | `public/static/app.js` | 「全トラック到達」バッジ判定用の`trackPrefixes2`が一部トラック（frontend / backend / infrastructure / database / linux-docker / web-security / career-strategy）を含んでいない | 必要なら`prefixes`と同じ全トラックに揃える（バッジ条件が変わるため要承認） |
+| 低 | `.gitignore` | Cloudflare撤去後に不要になった`dist/`・PM2用`.pm2/`が残っている | 不要なら削除 |
+
+（以前の既知の問題である`scenarios.ts`の`intro`/`personas`、`style.css`は解消済み）
+
+--------|---------|------|---------|
 | 中 | `src/data/scenarios.ts` | `domain-dx-proposal` に `intro:` フィールドを使用（`Scenario`型は `situation:` が正） | `intro:` → `situation:` に変更 |
 | 中 | `src/data/scenarios.ts` | `domain-dx-proposal` に `personas:` フィールドを使用（`Scenario`型未定義） | `personas:` を削除、または `types.ts` に `personas?: {...}[]` を追加 |
 | 低 | `src/pages/home.tsx` | ロードマップのフェーズバッジがPhase1〜3のみ（Phase4未追加） | フェーズバッジ配列にPhase4を追加 |
@@ -756,26 +790,17 @@ const colorMap = {
 ## 14. ビルドと確認コマンド
 
 ```bash
-# ビルド（GitHub Pages向け静的サイト生成）
-cd /home/user/webapp && npm run build:pages
+# ローカル開発サーバー起動（http://localhost:5173）
+npm run dev
 
-# ローカル開発サーバー起動（PM2経由）
-cd /home/user/webapp && pm2 start ecosystem.config.cjs
+# 公開用ビルド（GitHub Pages向け静的サイト生成 → dist-pages/）
+npm run build:pages
 
-# HTTP確認
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/tracks
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/lessons/cs-1-1
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/scenarios/domain-dx-proposal
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/self-analysis
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/tracks/career-strategy
-
-# ログ確認（非ブロッキング）
-pm2 logs --nostream
-
-# Gitコミット
-cd /home/user/webapp && git add . && git commit -m "feat: 説明"
+# 型チェック（0件が正常）
+npx tsc --noEmit
 ```
+
+デプロイは`main`へのpushで`.github/workflows/deploy-pages.yml`が自動実行する（公開URL: https://nixon1140-cpu.github.io/engineer-dojo-app/）。
 
 ---
 
@@ -798,7 +823,7 @@ cd /home/user/webapp && git add . && git commit -m "feat: 説明"
 - ダッシュボード強化（バッジ・ストリーク・学習時間・活動履歴）
 - ロードマップ全3フェーズ完了版
 
-### フェーズ4（コミット `ce13780`）★現在
+### フェーズ4（コミット `ce13780`）
 - **キャリア戦略トラック新設**（career-strategy, color: cyan, 3レッスン）
   - `cs-1-1`: T型人材モデル（CodingChallenge: calcMarketValue）
   - `cs-1-2`: 3段学習構造（CodingChallenge: avgPortability）
@@ -811,6 +836,25 @@ cd /home/user/webapp && git add . && git commit -m "feat: 説明"
 - **用語集7語追加**（63→70語、AI時代カテゴリ）
 - tracks.tsx: colorMapに cyan 追加
 - app.js: prefixesに `'career-strategy': 'cs-'` 追加
+
+### 第1ラウンド
+- 型エラー9件修正、colorMapにlime追加
+- Linux & Docker トラック新設（`linux-docker`）
+- レスポンシブヘッダー、進捗エクスポート/インポート、textareaのモバイル入力属性
+
+### 第2ラウンド
+- Webセキュリティ トラック新設（`web-security`）
+- infrastructure / frontend / testing / http-api の拡充
+- dashboard・weakness-mapのモバイル幅グリッド修正
+- 用語集8語追加（60→68語）
+
+### 第3ラウンド
+- GitHub Pages向け静的サイト生成（`scripts/generate-static.mjs`、`src/base-path.ts`）
+- 自動デプロイ（`.github/workflows/deploy-pages.yml`）
+
+### Stage B（コミット `f38ffe9`）★現在
+- Cloudflare Pages/Workers・wrangler関連を完全撤去（GitHub Pages一本化）
+- `dev`は`@hono/vite-dev-server/node`、`serveStatic`は`@hono/node-server/serve-static`に変更
 
 ---
 
