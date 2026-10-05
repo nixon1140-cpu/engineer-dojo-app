@@ -774,10 +774,9 @@ const colorMap = {
 
 | 優先度 | ファイル | 問題 | 修正方法 |
 |--------|---------|------|---------|
-| 低 | `public/static/app.js` | 「全トラック到達」バッジ判定用の`trackPrefixes2`が一部トラック（frontend / backend / infrastructure / database / linux-docker / web-security / career-strategy）を含んでいない | 必要なら`prefixes`と同じ全トラックに揃える（バッジ条件が変わるため要承認） |
 | 低 | `.gitignore` | Cloudflare撤去後に不要になった`dist/`・PM2用`.pm2/`が残っている | 不要なら削除 |
 
-（以前の既知の問題である`scenarios.ts`の`intro`/`personas`、`style.css`は解消済み）
+（以前の既知の問題である`scenarios.ts`の`intro`/`personas`、`style.css`、「全トラック到達」バッジの判定漏れは解消済み）
 
 --------|---------|------|---------|
 | 中 | `src/data/scenarios.ts` | `domain-dx-proposal` に `intro:` フィールドを使用（`Scenario`型は `situation:` が正） | `intro:` → `situation:` に変更 |

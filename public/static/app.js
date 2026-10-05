@@ -306,9 +306,11 @@
 
     // 全トラック到達チェック（全トラックで1本以上完了）
     var trackPrefixes2 = {
-      beginner: 'bg-', git: 'git-', 'http-api': 'http-', testing: 'test-',
-      practice: 'pr-', 'ai-dev': 'aid-', 'dx-scenario': 'dx-', portfolio: 'pf-',
-      marketing: 'mkt-', management: 'mgmt-', sales: 'sales-', 'ai-engineering': 'ai-'
+      beginner: 'bg-', frontend: 'fe-', backend: 'be-', infrastructure: 'infra-',
+      database: 'db-', git: 'git-', 'http-api': 'http-', testing: 'test-',
+      'linux-docker': 'ld-', practice: 'pr-', 'web-security': 'sec-', 'ai-dev': 'aid-',
+      portfolio: 'pf-', marketing: 'mkt-', management: 'mgmt-', sales: 'sales-',
+      'dx-scenario': 'dx-', 'ai-engineering': 'ai-', 'career-strategy': 'cs-'
     }
     var allTracksCovered = true
     Object.values(trackPrefixes2).forEach(function (prefix) {
