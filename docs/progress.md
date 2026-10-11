@@ -3,7 +3,7 @@
 最終更新: 2026-10-06
 
 ## 今の状況
-- ブランチ `main`、最新コミット `a0b252a`（origin/main と一致・push済み）
+- ブランチ `main`、最新コミット `3428787`（この記録ファイル自体の更新コミットを除く。origin/main と一致・push済み）
 - 公開先: GitHub Pages（https://nixon1140-cpu.github.io/engineer-dojo-app/）
 - 公開サイトは最新コミットを反映済み。デプロイ用の自動処理（GitHub Actions）も成功を確認済み
 - 規模: 19トラック / 76レッスン / 用語集68語 / シナリオ15本
