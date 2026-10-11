@@ -1,6 +1,14 @@
 # 作業の進み具合（progress.md）
 
-最終更新: 2026-10-06
+最終更新: 2026-10-11
+
+経緯: このアプリは Genspark で作ったあと、Claude と Claude Code で改修した。
+
+## 2026-10-11 の作業
+- CLAUDE.md を36行→21行に整理（終わった作業の記録とCloudflareの古い記述を削除、ルールに理由を追記）。仕様書は PROJECT_BRIEF.md が兼ねるため docs/spec.md は作らない
+- `.git/hooks/pre-commit` を導入（`.env` / `.env.*` のコミットを止める。`.env.example` は許可）
+  - 試験結果: 一時フォルダの試験用リポジトリ＋偽物の .env で、`.env` と `sub/.env.local` はコミット拒否（exit 1）、`.env.example` と通常ファイルは通った。試験用フォルダは削除済み
+  - 注意: フックは git で共有されないため、このPCだけの保護。別PCで作業するときは `.git/hooks/pre-commit` を入れ直す
 
 ## 今の状況
 - ブランチ `main`、最新コミット `3428787`（この記録ファイル自体の更新コミットを除く。origin/main と一致・push済み）
